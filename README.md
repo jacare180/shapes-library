@@ -30,8 +30,8 @@ Abra http://localhost:8787/?k=teste
 ## O que falta
 
 ### Para usar de verdade
-1. Repo próprio `jacare180/shapes-library` (privado) e mover esta pasta para lá
-2. Worker na Cloudflare ligado ao repo, com o secret `KEY_OWNER`, e o primeiro deploy
+1. ~~Repo próprio `jacare180/shapes-library` (privado)~~ feito
+2. ~~Worker na Cloudflare ligado ao repo, com o secret `KEY_OWNER`~~ feito: https://shapes-library.benyforma.workers.dev
 3. Testar a busca com os catálogos reais (aqui foi testada com um catálogo de exemplo). Se o Google Books esgotar a cota grátis, criar uma `GOOGLE_BOOKS_KEY`
 4. Testar no iPhone de verdade: animação 3D no Safari e instalar na tela inicial
 

@@ -2,7 +2,7 @@
 
 Biblioteca digital pessoal do Beny: livros lidos, em leitura e para ler, anotações, notas por critério e metas anuais. Vibe de biblioteca à noite (madeira, placas de latão, lombadas de couro, papel creme). Clicar num livro o tira da estante e abre com animação 3D.
 
-Repo `jacare180/shapes-library` (privado). Nasceu numa pasta do repo `jacare180/beny`; o Claude não consegue criar repositórios (a integração do GitHub recusa com 403), então o usuário criou este vazio.
+No ar em https://shapes-library.benyforma.workers.dev (Workers Builds, publica a cada push na `main`). Repo `jacare180/shapes-library` (privado). Nasceu numa pasta do repo `jacare180/beny`; o Claude não consegue criar repositórios (a integração do GitHub recusa com 403), então o usuário criou este vazio.
 
 ## Arquitetura
 
@@ -48,9 +48,10 @@ npm run seed                     # livros de exemplo
 - Sem `database_id` no `wrangler.jsonc`: o Wrangler cria os bancos D1 no primeiro deploy
 - `KEY_OWNER` como Secret no Worker (Settings > Variables and Secrets), em `shapes-library` e em `shapes-library-preview`, com chaves diferentes
 - Plano grátis com limites diários (zeram 00:00 UTC). Desde 01/09/2026, D1 acima do limite diário falha até o dia seguinte; uso pessoal fica muito abaixo
-- Repo privado: testar no primeiro deploy se os commits do Claude passam (no Netlify e na Vercel grátis não passam)
+- Repo privado funciona: a Cloudflare publica os commits do Claude (no Netlify e na Vercel grátis não publicaria)
+- A sessão de nuvem do Claude não alcança `*.workers.dev` nem a API da Cloudflare: testes no site publicado são feitos pelo usuário
 - Entrar num aparelho: abrir `https://<site>/?k=CHAVE` uma vez; a chave fica no aparelho e sai da barra de endereço
 
 ## Pendente
 
-Lista completa em `README.md` ("O que falta"). Primeiro: repo próprio, Worker na Cloudflare com `KEY_OWNER`, testar a busca real e o iPhone.
+Lista completa em `README.md` ("O que falta"). Primeiro: testar a busca real e o iPhone.
