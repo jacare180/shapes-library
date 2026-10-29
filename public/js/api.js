@@ -94,6 +94,14 @@ export const readsOf = (bookId) => S.reads.filter((r) => r.bookId === bookId);
 export const currentRead = (bookId) => readsOf(bookId).at(-1) || null;
 export const notesOf = (bookId) => S.notes.filter((n) => n.bookId === bookId);
 export const bookById = (id) => S.books.find((b) => b.id === id);
+// Reading progress in %: from the page when the book has a page count, otherwise the % typed in
+// (e-readers show %, and imported books may not have a page count yet).
+export function progressOf(book, read) {
+  if (!read) return null;
+  if (book.pages && read.page > 0) return Math.min(100, Math.round((100 * read.page) / book.pages));
+  if (read.pct != null) return read.pct;
+  return book.pages ? 0 : null;
+}
 export const criteriaFor = (kind) => (S.config.criteria || {})[kind] || [];
 
 export async function addBook(book, status) {

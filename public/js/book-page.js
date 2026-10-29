@@ -1,5 +1,5 @@
 // What is written inside an open book: the record on the left page, the notes on the right.
-import { S, write, readsOf, currentRead, notesOf, bookById, criteriaFor, newRead } from "./api.js";
+import { S, write, readsOf, currentRead, notesOf, bookById, criteriaFor, newRead, progressOf } from "./api.js";
 import { esc, rid, today, fmtDate, avg, fmtScore, STATUS, KINDS, NOTE_TYPES, leather } from "./util.js";
 import { turnPage } from "./book-open.js";
 
@@ -44,7 +44,7 @@ function drawLeft() {
   const crit = criteriaFor(b.kind || "ficcao");
   const scores = crit.map((c) => r.ratings?.[c]).filter((v) => v);
   const mean = avg(scores);
-  const pct = b.pages ? Math.min(100, Math.round((100 * (r.page || 0)) / b.pages)) : null;
+  const pct = progressOf(b, r);
   const past = readsOf(b.id).slice(0, -1).reverse();
   const meta = [b.year, b.pages && `${b.pages} páginas`, b.genre, KINDS[b.kind || "ficcao"]].filter(Boolean).map(esc).join(" · ");
 
@@ -55,6 +55,7 @@ function drawLeft() {
         <h1>${esc(b.title)}</h1>
         <p class="by">${esc((b.authors || []).join(", ")) || "Autor desconhecido"}</p>
         <p class="meta">${meta}</p>
+        ${!b.cover || !b.pages ? `<p class="link"><button type="button" class="linkish" data-act="catalog">Completar ${[!b.cover && "capa", !b.pages && "páginas"].filter(Boolean).join(" e ")} pelo catálogo</button></p>` : ""}
         ${/^https:\/\//.test(b.link || "") ? `<p class="link"><a href="${esc(b.link)}" target="_blank" rel="noopener">${esc(b.linkLabel || "Abrir referência")}</a></p>` : ""}
         ${(b.tags || []).length ? `<p class="tags">${b.tags.map((t) => `<span>${esc(t)}</span>`).join("")}</p>` : ""}
       </div>
@@ -71,9 +72,9 @@ function drawLeft() {
 
     ${r.status === "lendo" ? `
       <div class="progress">
-        <label>Página <input type="number" name="page" min="0" ${b.pages ? `max="${b.pages}"` : ""} value="${r.page || 0}" inputmode="numeric"></label>
-        <span>${b.pages ? `de ${b.pages}` : ""}</span>
-        ${pct != null ? `<div class="bar" aria-label="${pct}% lido"><i style="width:${pct}%"></i></div><b>${pct}%</b>` : ""}
+        ${b.pages ? `<label>Página <input type="number" name="page" min="0" max="${b.pages}" value="${r.page || 0}" inputmode="numeric"></label><span>de ${b.pages} ou</span>` : ""}
+        <label>${b.pages ? "" : "Progresso "}<input type="number" name="pct" min="0" max="100" value="${pct ?? ""}" inputmode="numeric" class="pct"> %</label>
+        ${pct != null ? `<div class="bar" aria-label="${pct}% lido"><i style="width:${pct}%"></i></div>` : ""}
       </div>` : ""}
 
     <h2 class="sect">Avaliação</h2>
@@ -89,6 +90,7 @@ function drawLeft() {
 
     <footer class="rec-foot">
       <button type="button" data-act="edit">Editar dados</button>
+      <button type="button" data-act="catalog">Buscar no catálogo</button>
       ${["lido", "abandonado"].includes(r.status) ? `<button type="button" data-act="reread">Ler de novo</button>` : ""}
       <button type="button" data-act="remove" class="danger">Tirar da estante</button>
     </footer>`;
@@ -171,6 +173,7 @@ async function onClick(e) {
   }
   const act = t.dataset.act;
   if (act === "edit") return ctx.onEdit(ctx.bookId);
+  if (act === "catalog") return ctx.onCatalog(ctx.bookId);
   if (act === "reread") {
     await newRead(ctx.bookId, "lendo").catch(() => {});
     return drawLeft();
@@ -195,10 +198,14 @@ async function onChange(e) {
   if (!ctx || t.closest(".note-form")) return;
   if (t.name === "start" || t.name === "end") return saveRead({ [t.name]: t.value });
   if (t.name === "review") return saveRead({ review: t.value.trim() });
-  if (t.name === "page") {
+  if (t.name === "page" || t.name === "pct") {
     const b = bookById(ctx.bookId);
-    const page = Math.max(0, Math.min(b.pages || Infinity, parseInt(t.value, 10) || 0));
-    await saveRead({ page });
+    const n = Math.max(0, parseInt(t.value, 10) || 0);
+    // keep page and % in step, so either can be typed
+    const patch = t.name === "page"
+      ? { page: Math.min(b.pages || Infinity, n), pct: b.pages ? Math.min(100, Math.round((100 * n) / b.pages)) : null }
+      : { pct: Math.min(100, n), page: b.pages ? Math.round((Math.min(100, n) * b.pages) / 100) : 0 };
+    await saveRead(patch);
     return drawLeft();
   }
 }

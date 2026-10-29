@@ -1,5 +1,5 @@
 // The bookcase: one shelf per reading status, books standing with their spines out.
-import { S, currentRead } from "./api.js";
+import { S, currentRead, progressOf } from "./api.js";
 import { esc, hash, leather, STATUS } from "./util.js";
 
 const ORDER = ["lendo", "lido", "quero", "abandonado"];
@@ -13,7 +13,7 @@ export function spineSize(book) {
 
 export function spineHTML(book, read, { hidden = false } = {}) {
   const { w, h } = spineSize(book);
-  const pct = read?.status === "lendo" && book.pages ? Math.min(100, Math.round((100 * (read.page || 0)) / book.pages)) : null;
+  const pct = read?.status === "lendo" ? progressOf(book, read) : null;
   const author = (book.authors || [])[0] || "";
   const surname = author.split(" ").at(-1);
   return `<button class="spine${hidden ? " out" : ""}" type="button" data-id="${esc(book.id)}"

@@ -1,6 +1,8 @@
 // Sample catalog answered when SHAPES_FAKE_SEARCH is set (local runs without internet).
-// No covers, so the app's own leather covers show.
+// Mostly without covers, so the app's own leather covers show. Pages and ISBNs here are made up.
 const SAMPLE = [
+  { title: "Os judeus e as palavras", authors: ["Amos Oz", "Fania Oz-Salzberger"], year: 2012, pages: 200, genre: "History", isbn: "9780000000001", cover: "/icon-512.png" },
+  { title: "Homo Deus: Uma Breve História do Amanhã", authors: ["Yuval Noah Harari"], year: 2015, pages: 440, genre: "History", isbn: "9780000000002" },
   { title: "Dom Casmurro", authors: ["Machado de Assis"], year: 1899, pages: 256, genre: "Fiction" },
   { title: "Memórias Póstumas de Brás Cubas", authors: ["Machado de Assis"], year: 1881, pages: 240, genre: "Fiction" },
   { title: "Grande Sertão: Veredas", authors: ["João Guimarães Rosa"], year: 1956, pages: 624, genre: "Fiction" },
@@ -16,5 +18,8 @@ const SAMPLE = [
 ];
 
 export const fakeSearch = (q) =>
-  SAMPLE.filter((b) => `${b.title} ${b.authors.join(" ")}`.toLowerCase().includes(q.toLowerCase()))
-    .map((b) => ({ ...b, cover: "", isbn: "", source: "Exemplo" }));
+  SAMPLE.filter((b) => {
+    const hay = `${b.title} ${b.authors.join(" ")}`.toLowerCase();
+    return q.toLowerCase().split(/\s+/).filter(Boolean).every((w) => hay.includes(w)); // every word, like the real catalogs
+  })
+    .map((b) => ({ cover: "", isbn: "", ...b, source: "Exemplo" }));

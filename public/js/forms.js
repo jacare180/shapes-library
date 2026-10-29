@@ -53,6 +53,81 @@ function open(html) {
   return m;
 }
 
+// Searches both catalogs and lists what came back; returns the results so a click can pick one.
+async function runSearch(q, box, fallback) {
+  box.innerHTML = `<p class="hint">Procurando nos catálogos...</p>`;
+  try {
+    const d = await search(q);
+    const silent = d.failed?.length ? `sem resposta de ${d.failed.join(" e ")}` : "";
+    box.innerHTML = d.results.length
+      ? `<ul>${d.results.map((b, i) => `
+          <li><button type="button" data-i="${i}">
+            <span class="mini" style="--c:${leather({ id: b.title, title: b.title })}">${b.cover ? `<img src="${esc(b.cover)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : ""}</span>
+            <span><b>${esc(b.title)}</b><br>${esc(b.authors.join(", "))}<small>${[b.year, b.pages && b.pages + " p.", b.source].filter(Boolean).map(esc).join(" · ")}</small></span>
+          </button></li>`).join("")}</ul>
+          ${silent ? `<p class="hint">${silent[0].toUpperCase() + silent.slice(1)}.</p>` : ""}`
+      : `<p class="hint">Nada encontrado${silent ? ` (${silent})` : ""}. Tente outro termo ${fallback}.</p>`;
+    return d.results;
+  } catch {
+    box.innerHTML = `<p class="hint">A busca falhou. Confira a conexão ${fallback}.</p>`;
+    return [];
+  }
+}
+
+const FILL = [
+  ["cover", "Capa", (v) => `<span class="mini"><img src="${esc(v)}" alt="" referrerpolicy="no-referrer" onerror="this.remove()"></span>`],
+  ["pages", "Páginas", (v) => esc(v)],
+  ["year", "Ano", (v) => esc(v)],
+  ["isbn", "ISBN", (v) => esc(v)],
+];
+
+// Fills an existing book (imported, typed by hand) from the catalogs. Empty fields come checked;
+// a field that already has a value is only replaced if you tick it.
+export function catalogDialog(bookId, onSaved) {
+  const b = bookById(bookId);
+  const m = open(`
+    <h2>Completar pelo catálogo</h2>
+    <form class="finder" role="search">
+      <input name="q" type="search" value="${esc([b.title, (b.authors || [])[0]].filter(Boolean).join(" "))}" aria-label="Procurar no catálogo">
+      <button class="brass" type="submit">Procurar</button>
+    </form>
+    <div class="results" aria-live="polite"></div>
+    <form class="fill" hidden></form>`);
+  const results = m.querySelector(".results");
+  const fill = m.querySelector(".fill");
+  let found = [];
+  const go = async (q) => { fill.hidden = true; found = await runSearch(q, results, "ou corrija o título acima"); };
+  m.querySelector(".finder").onsubmit = (e) => { e.preventDefault(); go(e.target.q.value.trim()); };
+  go(m.querySelector(".finder").q.value);
+
+  results.onclick = (e) => {
+    const btn = e.target.closest("[data-i]");
+    if (!btn) return;
+    const c = found[+btn.dataset.i];
+    const rows = FILL.filter(([k]) => c[k]);
+    results.querySelectorAll("[data-i]").forEach((x) => x.classList.toggle("on", x === btn));
+    fill.hidden = false;
+    fill.innerHTML = rows.length ? `
+      <p class="hint">Do ${esc(c.source)}: marque o que trazer.</p>
+      ${rows.map(([k, label, show]) => `
+        <label class="fill-row"><input type="checkbox" name="${k}" ${b[k] ? "" : "checked"}>
+          <span class="f-label">${label}</span><span class="f-new">${show(c[k])}</span>
+          <small>${b[k] ? (k === "cover" ? "troca a capa atual" : `hoje: ${esc(b[k])}`) : "vazio hoje"}</small></label>`).join("")}
+      <div class="actions"><button class="brass" type="submit">Completar</button></div>`
+      : `<p class="hint">Este resultado não traz capa, páginas, ano nem ISBN. Escolha outro.</p>`;
+    fill.onsubmit = async (ev) => {
+      ev.preventDefault();
+      const data = Object.fromEntries(rows.filter(([k]) => fill.elements[k].checked).map(([k]) => [k, c[k]]));
+      if (!Object.keys(data).length) return m.close();
+      m.close();
+      await write("update", `books/${bookId}`, data).catch(() => {});
+      onSaved?.(data);
+      toast("Dados completados pelo catálogo.");
+    };
+    fill.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  };
+}
+
 export function newBookDialog(status = "quero", onAdded) {
   const m = open(`
     <h2>Novo livro</h2>
@@ -74,21 +149,7 @@ export function newBookDialog(status = "quero", onAdded) {
     e.preventDefault();
     const q = e.target.q.value.trim();
     if (!q) return;
-    results.innerHTML = `<p class="hint">Procurando nos catálogos...</p>`;
-    try {
-      const d = await search(q);
-      found = d.results;
-      results.innerHTML = found.length
-        ? `<ul>${found.map((b, i) => `
-            <li><button type="button" data-i="${i}">
-              <span class="mini" style="--c:${leather({ id: b.title, title: b.title })}">${b.cover ? `<img src="${esc(b.cover)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : ""}</span>
-              <span><b>${esc(b.title)}</b><br>${esc(b.authors.join(", "))}<small>${[b.year, b.pages && b.pages + " p."].filter(Boolean).join(" · ")}</small></span>
-            </button></li>`).join("")}</ul>
-            ${d.failed?.length ? `<p class="hint">Sem resposta de ${d.failed.join(" e ")}.</p>` : ""}`
-        : `<p class="hint">Nada encontrado${d.failed?.length ? ` (sem resposta de ${d.failed.join(" e ")})` : ""}. Tente outro termo ou preencha à mão.</p>`;
-    } catch {
-      results.innerHTML = `<p class="hint">A busca falhou. Confira a conexão ou preencha à mão.</p>`;
-    }
+    found = await runSearch(q, results, "ou preencha à mão");
   };
 
   results.onclick = (e) => {

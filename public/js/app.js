@@ -1,9 +1,9 @@
-import { S, getKey, setKey, takeKeyFromUrl, loadCache, refresh, bookById, currentRead, newRead } from "./api.js";
+import { S, getKey, setKey, takeKeyFromUrl, loadCache, refresh, bookById, currentRead, newRead, write } from "./api.js";
 import { $, $$, esc, toast } from "./util.js";
 import { renderShelves, fillShelves } from "./shelf.js";
 import { openBook, closeBook } from "./book-open.js";
 import { fillSpread, clearSpread, redrawIfIdle } from "./book-page.js";
-import { newBookDialog, editBookDialog } from "./forms.js";
+import { newBookDialog, editBookDialog, catalogDialog } from "./forms.js";
 import { renderGoals } from "./goals.js";
 import { renderSettings } from "./settings.js";
 
@@ -73,6 +73,12 @@ async function show(id) {
   await openBook(layer, book, spineOf(id), (spread) => fillSpread(spread, id, {
     onClose: () => { location.hash = "#/"; },
     onEdit: (bid) => editBookDialog(bid, () => { redrawIfIdle(); fillShelves(view, filter); }),
+    onCatalog: (bid) => catalogDialog(bid, async (data) => {
+      // a % typed before the page count was known becomes a page now
+      const r = currentRead(bid);
+      if (data.pages && r?.pct && !(r.page > 0)) await write("update", `reads/${r.id}`, { page: Math.round((r.pct * data.pages) / 100) }).catch(() => {});
+      redrawIfIdle(); fillShelves(view, filter);
+    }),
     onDeleted: () => { toast("Livro retirado da estante."); location.hash = "#/"; },
   }));
   busy = false;

@@ -13,13 +13,14 @@ Cloudflare Workers (site estático + API) com banco D1, HTML/CSS/JS puro sem bui
   - `js/shelf.js`: prateleiras por situação (Lendo agora, Lido, Quero ler, Abandonado), lombadas com largura pelo número de páginas
   - `js/book-open.js`: o livro 3D (capas, lombada, bordas das páginas) e as animações de abrir, fechar e virar página. A origem da transformação fica na lombada: no começo ela coincide com a lombada clicada na estante e, aberto, fica no meio da tela
   - `js/book-page.js`: o que está escrito no livro aberto. Página esquerda: ficha, situação, datas, progresso, notas por critério, nota geral, resenha. Direita: anotações (citação, reflexão, resumo, com página)
-  - `js/forms.js`: novo livro (busca nos catálogos ou à mão) e editar dados
+  - `js/forms.js`: novo livro (busca nos catálogos ou à mão), editar dados e completar pelo catálogo (capa, páginas, ano, ISBN; vazios vêm marcados, os preenchidos só trocam se marcar)
   - `js/goals.js`: meta anual de livros e páginas, ritmo, "estante do ano" com lugares vazios, gráfico mês a mês
   - `js/settings.js`: critérios de avaliação por tipo, backup em JSON, importar (backup ou arquivo preparado), sair do aparelho
   - Livro pode ter `link` e `linkLabel` (ex.: a página do Notion), mostrados na ficha
 - `src/worker.js`: API, tudo exige a chave (`x-library-key` = secret `KEY_OWNER`). Só `/api/*` passa pelo Worker (`run_worker_first`); o resto são arquivos de `public/`
   - `GET /api/state` | `POST /api/write {op: set|update|delete, path, data}` | `POST /api/import {docs: [{path, data}]}` (até 500, em lote; mesmo caminho sobrescreve, então reimportar não duplica) | `GET /api/search?q=`
   - D1, tabela `docs (path, coll, data, updated_at)`, criada pelo próprio Worker na primeira chamada. Uma linha por documento, para gravações do PC e do celular não se sobrescreverem: `books/<id>`, `reads/<id>`, `notes/<id>`, `goals/<ano>`, `config/criteria`. A biblioteca inteira vem numa consulta só
+  - Progresso: `read.page` e `read.pct` andam juntos (`progressOf` em `api.js`). Livro sem número de páginas usa só o %; quando o catálogo traz as páginas, o % vira página
   - **Livro** e **Leitura** são separados: cada releitura é uma nova leitura com suas próprias datas e notas. A leitura atual é a mais recente
   - Livro removido fica com `deleted: true` (some da API, mas continua no banco)
   - Busca: Google Books (secret opcional `GOOGLE_BOOKS_KEY`) e Open Library ao mesmo tempo; se um falha, o outro responde. Com `SHAPES_FAKE_SEARCH` responde com o catálogo de exemplo de `src/sample-search.js`

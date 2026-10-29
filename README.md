@@ -19,9 +19,10 @@ Abra http://localhost:8787/?k=teste
 
 - Estante com prateleiras Lendo agora, Lido, Quero ler e Abandonado; lombadas de couro com largura pelo número de páginas e marcador nos livros em leitura
 - Animação: o livro sai da estante, gira, a capa abre e mostra as páginas; ao fechar, volta para o mesmo lugar
-- Ficha: situação, datas, página atual e progresso, notas de 1 a 5 por critério com média, nota geral, resenha, releituras
+- Ficha: situação, datas, progresso por página ou em % (como no Kindle), notas de 1 a 5 por critério com média, nota geral, resenha, releituras
 - Anotações: citação, reflexão ou resumo, com página
 - Novo livro pela busca (Google Books e Open Library) ou à mão; editar dados, cor da lombada, tags
+- Completar pelo catálogo: traz capa, páginas, ano e ISBN para um livro já na estante (só os campos que você marcar)
 - Procurar na estante por título, autor, gênero ou tag
 - Metas: livros e páginas por ano, ritmo, estante do ano com lugares vazios, gráfico mês a mês
 - Ajustes: critérios por tipo de livro, cópia de segurança em JSON e importar (restaurar cópia ou trazer livros de outro lugar)
