@@ -55,6 +55,7 @@ function drawLeft() {
         <h1>${esc(b.title)}</h1>
         <p class="by">${esc((b.authors || []).join(", ")) || "Autor desconhecido"}</p>
         <p class="meta">${meta}</p>
+        ${/^https:\/\//.test(b.link || "") ? `<p class="link"><a href="${esc(b.link)}" target="_blank" rel="noopener">${esc(b.linkLabel || "Abrir referência")}</a></p>` : ""}
         ${(b.tags || []).length ? `<p class="tags">${b.tags.map((t) => `<span>${esc(t)}</span>`).join("")}</p>` : ""}
       </div>
     </header>

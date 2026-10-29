@@ -15,9 +15,10 @@ Cloudflare Workers (site estático + API) com banco D1, HTML/CSS/JS puro sem bui
   - `js/book-page.js`: o que está escrito no livro aberto. Página esquerda: ficha, situação, datas, progresso, notas por critério, nota geral, resenha. Direita: anotações (citação, reflexão, resumo, com página)
   - `js/forms.js`: novo livro (busca nos catálogos ou à mão) e editar dados
   - `js/goals.js`: meta anual de livros e páginas, ritmo, "estante do ano" com lugares vazios, gráfico mês a mês
-  - `js/settings.js`: critérios de avaliação por tipo, backup em JSON, sair do aparelho
+  - `js/settings.js`: critérios de avaliação por tipo, backup em JSON, importar (backup ou arquivo preparado), sair do aparelho
+  - Livro pode ter `link` e `linkLabel` (ex.: a página do Notion), mostrados na ficha
 - `src/worker.js`: API, tudo exige a chave (`x-library-key` = secret `KEY_OWNER`). Só `/api/*` passa pelo Worker (`run_worker_first`); o resto são arquivos de `public/`
-  - `GET /api/state` | `POST /api/write {op: set|update|delete, path, data}` | `GET /api/search?q=`
+  - `GET /api/state` | `POST /api/write {op: set|update|delete, path, data}` | `POST /api/import {docs: [{path, data}]}` (até 500, em lote; mesmo caminho sobrescreve, então reimportar não duplica) | `GET /api/search?q=`
   - D1, tabela `docs (path, coll, data, updated_at)`, criada pelo próprio Worker na primeira chamada. Uma linha por documento, para gravações do PC e do celular não se sobrescreverem: `books/<id>`, `reads/<id>`, `notes/<id>`, `goals/<ano>`, `config/criteria`. A biblioteca inteira vem numa consulta só
   - **Livro** e **Leitura** são separados: cada releitura é uma nova leitura com suas próprias datas e notas. A leitura atual é a mais recente
   - Livro removido fica com `deleted: true` (some da API, mas continua no banco)
@@ -33,6 +34,10 @@ cp .dev.vars.example .dev.vars   # KEY_OWNER=teste e busca de exemplo
 npm run dev                      # http://localhost:8787/?k=teste (D1 local em .wrangler/)
 npm run seed                     # livros de exemplo
 ```
+
+## Notion
+
+Antes da Shapes Library, as leituras ficavam na base "Fila de leitura" do Notion (`collection://73872891-253b-43b7-b5e7-77fa2d029b1b`, página "Livros para ler"), lida pelo artifact "Estante de Leitura". Importada em 29/10/2026 com ids `notion-<fim do id da página>`: Por que ler, Observação e Conexões no registro (FilosoX) viraram anotações; Tema virou gênero e tags; Ordem virou a ordem nas prateleiras.
 
 ## Regras
 

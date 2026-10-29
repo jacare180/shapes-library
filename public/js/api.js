@@ -77,6 +77,18 @@ export async function write(op, path, data) {
   }
 }
 
+// A backup file (or books brought from elsewhere) in the same shape the backup button saves.
+export async function importLibrary(file) {
+  const docs = [];
+  for (const c of ["books", "reads", "notes"]) for (const { id, ...d } of file[c] || []) if (id) docs.push({ path: `${c}/${id}`, data: d });
+  for (const [k, v] of Object.entries(file.goals || {})) if (v) docs.push({ path: `goals/${k}`, data: v });
+  for (const [k, v] of Object.entries(file.config || {})) if (v) docs.push({ path: `config/${k}`, data: v });
+  if (!docs.length) throw new Error("empty");
+  for (let i = 0; i < docs.length; i += 400) await call("import", { method: "POST", body: JSON.stringify({ docs: docs.slice(i, i + 400) }) });
+  await refresh();
+  return (file.books || []).length;
+}
+
 // ---- reading helpers ----
 export const readsOf = (bookId) => S.reads.filter((r) => r.bookId === bookId);
 export const currentRead = (bookId) => readsOf(bookId).at(-1) || null;

@@ -24,7 +24,7 @@ Abra http://localhost:8787/?k=teste
 - Novo livro pela busca (Google Books e Open Library) ou à mão; editar dados, cor da lombada, tags
 - Procurar na estante por título, autor, gênero ou tag
 - Metas: livros e páginas por ano, ritmo, estante do ano com lugares vazios, gráfico mês a mês
-- Ajustes: critérios por tipo de livro, cópia de segurança em JSON
+- Ajustes: critérios por tipo de livro, cópia de segurança em JSON e importar (restaurar cópia ou trazer livros de outro lugar)
 - Mesma biblioteca no PC e no celular (dados no Cloudflare D1), ícone e modo app
 
 ## O que falta
@@ -42,7 +42,7 @@ Abra http://localhost:8787/?k=teste
 - Estatísticas: gêneros, autores, nota média, mapa da nacionalidade dos autores
 - Estantes personalizadas (coleções) e arrastar livros para reordenar
 - Anotações: editar, buscar em todas, citação do dia na entrada, cartão para compartilhar
-- Importar do Goodreads (CSV) e restaurar a cópia de segurança
+- Importar do Goodreads (CSV)
 - Empréstimos: para quem e quando
 - Retrospectiva do ano
 - Modo dia (tema claro)

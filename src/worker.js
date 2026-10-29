@@ -74,6 +74,23 @@ async function write(req, env) {
   return json({ ok: true, doc: { id: path.split("/")[1], ...doc } });
 }
 
+// Many documents at once (restoring a backup, bringing books from elsewhere). Same paths overwrite,
+// so importing the same file twice never duplicates anything.
+async function importDocs(req, env) {
+  const { docs } = await req.json().catch(() => ({}));
+  if (!Array.isArray(docs) || !docs.length || docs.length > 500) return json({ error: "bad docs" }, 400);
+  const bad = docs.find(({ path, data }) => !KEY_RE.test(path || "") || !data || typeof data !== "object" || Array.isArray(data) || JSON.stringify(data).length > MAX_DOC);
+  if (bad) return json({ error: "bad doc", path: bad.path }, 400);
+  const d = await db(env);
+  const now = Date.now();
+  const stmt = d.prepare("INSERT INTO docs (path, coll, data, updated_at) VALUES (?1, ?2, ?3, ?4) ON CONFLICT(path) DO UPDATE SET data = ?3, updated_at = ?4");
+  await d.batch(docs.map(({ path, data }) => {
+    const { id: _drop, ...rest } = data;
+    return stmt.bind(path, path.split("/")[0], JSON.stringify({ ...rest, updatedAt: now }), now);
+  }));
+  return json({ ok: true, count: docs.length });
+}
+
 const fetchJSON = (url) =>
   fetch(url, { signal: AbortSignal.timeout(7000), headers: { "user-agent": "ShapesLibrary/1.0" } })
     .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`${r.status}`))));
@@ -136,6 +153,7 @@ export default {
     try {
       if (req.method === "GET" && path === "state") return await state(env);
       if (req.method === "POST" && path === "write") return await write(req, env);
+      if (req.method === "POST" && path === "import") return await importDocs(req, env);
       if (req.method === "GET" && path === "search") return await search(url.searchParams.get("q"), env);
       return json({ error: "not found" }, 404);
     } catch (e) {

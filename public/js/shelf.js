@@ -46,7 +46,7 @@ export function fillShelves(view, filter = "") {
     if (q && !hay.includes(q)) continue;
     groups[r?.status || "quero"].push({ b, r });
   }
-  groups.lendo.sort((x, y) => (y.r?.updatedAt || 0) - (x.r?.updatedAt || 0));
+  groups.lendo.sort((x, y) => (y.r?.updatedAt || 0) - (x.r?.updatedAt || 0) || (y.b.createdAt || 0) - (x.b.createdAt || 0));
   groups.lido.sort((x, y) => (y.r?.end || "").localeCompare(x.r?.end || ""));
   groups.quero.sort((x, y) => (y.b.createdAt || 0) - (x.b.createdAt || 0));
 
