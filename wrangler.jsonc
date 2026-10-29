@@ -1,0 +1,26 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "shapes-library",
+  "main": "src/worker.js",
+  "compatibility_date": "2026-10-20",
+  // The site is static files; only the API runs the Worker.
+  "assets": {
+    "directory": "./public",
+    "run_worker_first": ["/api/*"]
+  },
+  // No database_id: Wrangler creates the database on the first deploy.
+  "d1_databases": [{ "binding": "DB", "database_name": "shapes-library" }],
+  "observability": { "enabled": true },
+  // Preview builds (npx wrangler preview, run by Workers Builds on other branches) get their own database too.
+  "previews": {
+    "d1_databases": [{ "binding": "DB", "database_name": "shapes-library-preview" }]
+  },
+  "env": {
+    // Tests on other branches: separate Worker, separate database, never the real library.
+    //   npx wrangler deploy --env preview
+    "preview": {
+      "name": "shapes-library-preview",
+      "d1_databases": [{ "binding": "DB", "database_name": "shapes-library-preview" }]
+    }
+  }
+}

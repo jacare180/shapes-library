@@ -1,0 +1,13 @@
+{
+  "name": "shapes-library",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "seed": "node dev/seed.mjs"
+  },
+  "devDependencies": {
+    "wrangler": "^4.155.0"
+  }
+}

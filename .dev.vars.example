@@ -1,0 +1,3 @@
+# Copy to .dev.vars for local runs (never commit .dev.vars)
+KEY_OWNER=teste
+SHAPES_FAKE_SEARCH=1
