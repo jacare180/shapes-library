@@ -12,14 +12,17 @@ Cloudflare Workers (site estático + API) com banco D1, HTML/CSS/JS puro sem bui
 
 - `public/`: o site. `index.html` carrega `js/app.js` como módulo ES. Rotas por hash: `#/` (estante), `#/livro/<id>`, `#/metas`, `#/ajustes`
   - `js/api.js`: estado em memória, cópia em localStorage (abre na hora e offline), gravação otimista
-  - `js/shelf.js`: duas visões (lembradas no aparelho): por situação (Lendo agora, Lido, Quero ler, Abandonado) ou por tema, numa estante só com um divisor de madeira por tema; livro com dois temas aparece nos dois. Lombadas com largura pelo número de páginas e altura de 214 a 257 px
+  - `js/shelf.js`: três visões (lembradas no aparelho): por situação (Lendo agora, Lido, Quero ler, Abandonado), por ideia (abaixo) ou por tema, numa estante só com um divisor de madeira por tema; livro com dois temas aparece nos dois. Lombadas com largura pelo número de páginas e altura de 214 a 257 px
   - Temas de um livro = campo `tags` (rótulo "Temas" no cadastro). Os livros do Notion já vieram com os temas
+  - Cor da lombada: cor escolhida no livro, senão a do primeiro tema (`THEME_DEFAULTS` em `util.js`, as cores da antiga estante do Notion, mudáveis em Ajustes e guardadas em `config/themeColors`), senão uma da paleta pelo id
+  - Fila com prioridade: em "Lendo agora" e "Quero ler", `book.order` (1, 2, 3...) aparece numa plaquinha na borda da prateleira; "Ordenar" deixa arrastar (mouse ou dedo, eventos no document porque mover o livro no DOM perde o pointer capture) ou usar as setas; "Pronto" salva em lote via `/api/import`. Sem ordem, vem depois dos ordenados, mais novo primeiro. Ao mudar de prateleira, o livro vai para o fim dos já ordenados de lá
+  - Terceira visão "Por ideia": livros por referência do FilosoX (#019...), com divisor por ideia; buscar "#026" mostra só aquela ideia e a descrição que cada livro dá a ela
   - `js/book-open.js`: o livro 3D (capas, lombada, bordas das páginas) e as animações de abrir, fechar e virar página. A origem da transformação fica na lombada: no começo ela coincide com a lombada clicada na estante e, aberto, fica no meio da tela
-  - `js/book-page.js`: o que está escrito no livro aberto. Página esquerda: ficha, situação, datas, progresso, notas por critério, nota geral, resenha. A resenha tem botão "Guardar resenha" (e também salva ao sair da caixa). Direita: anotações (citação, reflexão, resumo, com página)
+  - `js/book-page.js`: o que está escrito no livro aberto. Página esquerda: ficha, "Por que ler" (`book.why`), "Conexões com o FilosoX" (`book.connections`, texto livre; `ideasOf` em `api.js` tira os #códigos, que viram botões para a estante daquela ideia), situação, datas, progresso, notas por critério, nota geral, resenha. A resenha tem botão "Guardar resenha" (e também salva ao sair da caixa). Direita: anotações (citação, reflexão, resumo, com página)
   - `js/forms.js`: novo livro (busca nos catálogos ou à mão), editar dados e completar pelo catálogo (capa, páginas, ano, ISBN; vazios vêm marcados, os preenchidos só trocam se marcar)
   - `js/goals.js`: "Por ano" (meta de livros e páginas, ritmo, estante do ano com lugares vazios, mês a mês) e "Tudo" (todos os lidos, divisor por ano, ano a ano; lido sem data de fim fica em "Sem data")
   - `js/catalog.js`: Google Books e Open Library, usado pela página e pelo Worker. A página pergunta direto aos catálogos e ao Worker ao mesmo tempo: o Google Books sem chave conta a cota por quem chama, e o Worker divide endereço com muitos sites (dá 429 "Queries per day"). Resultados iguais das duas fontes viram um só
-  - `js/settings.js`: critérios de avaliação por tipo, backup em JSON, importar (backup ou arquivo preparado), sair do aparelho
+  - `js/settings.js`: critérios de avaliação por tipo, cores dos temas, backup em JSON, importar (backup ou arquivo preparado), sair do aparelho
   - Livro pode ter `link` e `linkLabel` (ex.: a página do Notion), mostrados na ficha
 - `src/worker.js`: API, tudo exige a chave (`x-library-key` = secret `KEY_OWNER`). Só `/api/*` passa pelo Worker (`run_worker_first`); o resto são arquivos de `public/`
   - `GET /api/state` | `POST /api/write {op: set|update|delete, path, data}` | `POST /api/import {docs: [{path, data}]}` (até 500, em lote; mesmo caminho sobrescreve, então reimportar não duplica) | `GET /api/search?q=`
@@ -42,7 +45,7 @@ npm run seed                     # livros de exemplo
 
 ## Notion
 
-Antes da ShapeX Library, as leituras ficavam na base "Fila de leitura" do Notion (`collection://73872891-253b-43b7-b5e7-77fa2d029b1b`, página "Livros para ler"), lida pelo artifact "Estante de Leitura". Importada em 29/10/2026 com ids `notion-<fim do id da página>`: Por que ler, Observação e Conexões no registro (FilosoX) viraram anotações; Tema virou gênero e tags; Ordem virou a ordem nas prateleiras.
+Antes da ShapeX Library, as leituras ficavam na base "Fila de leitura" do Notion (`collection://73872891-253b-43b7-b5e7-77fa2d029b1b`, página "Livros para ler"), lida pelo artifact "Estante de Leitura". Importada em 29/10/2026 com ids `notion-<fim do id da página>`: Por que ler, Observação e Conexões no registro (FilosoX) viraram anotações (em 30/10/2026 `moveNotesToFields` passou Por que ler e Conexões para os campos `why` e `connections` do livro, uma vez, ao abrir o app; Observação continua anotação); Tema virou gênero e tags; Ordem virou a ordem nas prateleiras.
 
 ## Regras
 

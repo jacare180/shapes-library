@@ -12,9 +12,27 @@ export function hash(s) {
   return h >>> 0;
 }
 
-// Leather bindings: the spine colour comes from the book unless one was chosen.
+// Leather bindings. A spine takes, in order: the colour chosen for the book, the colour of its first
+// theme, or one picked from the palette by its id.
 export const LEATHER = ["#6e1f24", "#2f4a33", "#1f3550", "#7a5a1e", "#4a2a3d", "#5b3a24", "#2d4f4f", "#8a3b1c", "#3b3b5c", "#55602a"];
-export const leather = (book) => book.color || LEATHER[hash(book.id + book.title) % LEATHER.length];
+// Leather versions of the theme colours from the old Notion shelf; any theme can be recoloured in Ajustes.
+export const THEME_DEFAULTS = {
+  "Filosofia política": "#25406a",
+  "Economia": "#2f5a3a",
+  "Ciência": "#8a4f1e",
+  "IA": "#4b3570",
+  "Judaísmo": "#7a5f16",
+  "Negócios": "#7a2a24",
+  "Mente": "#6b2d55",
+};
+let themeColors = { ...THEME_DEFAULTS };
+export const setThemeColors = (custom) => { themeColors = { ...THEME_DEFAULTS, ...(custom || {}) }; };
+export const themeColor = (theme) => themeColors[theme] || LEATHER[hash(theme) % LEATHER.length];
+export const leather = (book) => {
+  if (book.color) return book.color;
+  const first = (book.tags || []).find(Boolean);
+  return first ? themeColor(first) : LEATHER[hash(book.id + book.title) % LEATHER.length];
+};
 
 // Local date (an ISO string would be tomorrow's date on a Brazilian evening).
 export const today = () => {

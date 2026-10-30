@@ -1,5 +1,5 @@
 // What is written inside an open book: the record on the left page, the notes on the right.
-import { S, write, readsOf, currentRead, notesOf, bookById, criteriaFor, newRead, progressOf } from "./api.js";
+import { S, write, readsOf, currentRead, notesOf, bookById, criteriaFor, newRead, progressOf, ideasOf } from "./api.js";
 import { esc, rid, today, fmtDate, avg, fmtScore, STATUS, KINDS, NOTE_TYPES, leather } from "./util.js";
 import { turnPage } from "./book-open.js";
 
@@ -41,6 +41,17 @@ const stars = (value) =>
   `<span class="stars" role="radiogroup" aria-label="Nota geral">${[1, 2, 3, 4, 5].map((v) =>
     `<button type="button" role="radio" aria-checked="${value === v}" class="${value >= v ? "on" : ""}" data-overall="${v}" aria-label="${v} de 5">★</button>`).join("")}</span>`;
 
+// FilosoX references become buttons that open the shelf of that idea; text without references shows as is.
+function connectionsHTML(b) {
+  if (!b.connections) return "";
+  const ideas = ideasOf(b);
+  return `<div class="connections"><h3>Conexões com o FilosoX</h3>
+    ${ideas.length
+      ? `<p class="ideas">${ideas.map(({ code, label }) => `<button type="button" class="idea" data-idea="${esc(code)}" title="Ver todos os livros da ideia #${esc(code)}">#${esc(code)}${label ? ` <small>${esc(label)}</small>` : ""}</button>`).join("")}</p>`
+      : `<p>${esc(b.connections)}</p>`}
+  </div>`;
+}
+
 function drawLeft() {
   const b = bookById(ctx.bookId);
   const r = currentRead(b.id);
@@ -63,6 +74,9 @@ function drawLeft() {
         ${(b.tags || []).length ? `<p class="tags">${b.tags.map((t) => `<span>${esc(t)}</span>`).join("")}</p>` : ""}
       </div>
     </header>
+
+    ${b.why ? `<div class="why"><h3>Por que ler</h3><p>${esc(b.why).replace(/\n/g, "<br>")}</p></div>` : ""}
+    ${connectionsHTML(b)}
 
     <div class="status" role="radiogroup" aria-label="Situação">
       ${Object.entries(STATUS).map(([k, v]) => `<button type="button" role="radio" aria-checked="${r.status === k}" class="${r.status === k ? "on" : ""}" data-status="${k}">${v}</button>`).join("")}
@@ -147,6 +161,7 @@ async function onClick(e) {
   if (!t || !ctx) return;
   const r = read();
   if (t.matches(".close-book")) return ctx.onClose();
+  if (t.dataset.idea) return ctx.onIdea(t.dataset.idea);
   if (t.dataset.leaf) {
     const tabs = ctx.spread.querySelectorAll(".leaf-tabs button");
     if (t.classList.contains("on")) return;
@@ -161,6 +176,13 @@ async function onClick(e) {
     if (status === "lido" && !r.end) patch.end = today();
     if (status === "lido") { const b = bookById(ctx.bookId); if (b.pages) patch.page = b.pages; }
     await saveRead(patch);
+    // a new shelf means a new place in its queue: after the books already in order there
+    const b = bookById(ctx.bookId);
+    if (status !== r.status) {
+      const orders = S.books.filter((x) => x.id !== b.id && x.order != null && currentRead(x.id)?.status === status).map((x) => x.order);
+      const order = orders.length ? Math.max(...orders) + 1 : null;
+      if (order !== (b.order ?? null)) await write("update", `books/${b.id}`, { order }).catch(() => {});
+    }
     return drawLeft();
   }
   if (t.dataset.rate) {

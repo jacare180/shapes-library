@@ -1,6 +1,6 @@
 // Talks to /api and keeps the library in memory. The last copy is cached in localStorage,
 // so the shelf shows at once (and offline); the server is always the source of truth.
-import { rid, toast, today } from "./util.js";
+import { rid, toast, today, setThemeColors } from "./util.js";
 import { googleURL, openLibraryURL, fromGoogle, fromOpenLibrary, fetchJSON, merge } from "./catalog.js";
 
 const KEY = "shapes-key";
@@ -28,6 +28,7 @@ const emit = () => listeners.forEach((fn) => fn());
 
 function apply(data) {
   Object.assign(S, data, { loaded: true });
+  setThemeColors(S.config.themeColors);
   S.reads.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
   safe(() => localStorage.setItem(CACHE, JSON.stringify(data)));
   emit();
@@ -35,7 +36,7 @@ function apply(data) {
 
 export function loadCache() {
   const c = safe(() => JSON.parse(localStorage.getItem(CACHE)));
-  if (c) { Object.assign(S, c, { loaded: true }); emit(); }
+  if (c) { Object.assign(S, c, { loaded: true }); setThemeColors(S.config?.themeColors); emit(); }
 }
 
 async function call(path, opts = {}) {
@@ -81,6 +82,7 @@ export async function write(op, path, data) {
     S.goals[id] = op === "delete" ? undefined : { ...(op === "update" ? S.goals[id] : {}), ...data };
   } else if (c === "config") {
     S.config[id] = { ...(op === "update" ? S.config[id] : {}), ...data };
+    if (id === "themeColors") setThemeColors(S.config.themeColors);
   }
   emit();
   try {
@@ -103,6 +105,56 @@ export async function importLibrary(file) {
   for (let i = 0; i < docs.length; i += 400) await call("import", { method: "POST", body: JSON.stringify({ docs: docs.slice(i, i + 400) }) });
   await refresh();
   return (file.books || []).length;
+}
+
+// Priority on the "Lendo agora" and "Quero ler" shelves: the ids in their new order, saved in one batch.
+export async function saveOrder(ids) {
+  const docs = [];
+  ids.forEach((id, i) => {
+    const b = bookById(id);
+    if (!b || b.order === i + 1) return;
+    b.order = i + 1;
+    const { id: _drop, ...data } = b;
+    docs.push({ path: `books/${id}`, data });
+  });
+  if (!docs.length) return;
+  emit();
+  try {
+    await call("import", { method: "POST", body: JSON.stringify({ docs }) });
+    safe(() => localStorage.setItem(CACHE, JSON.stringify(S)));
+  } catch {
+    toast("Não consegui salvar a nova ordem.", "bad");
+    refresh().catch(() => {});
+  }
+}
+
+// FilosoX references in a book's connections text: "#019 (tradição como...), #020" gives
+// [{ code: "019", label: "tradição como..." }, { code: "020", label: "" }].
+export function ideasOf(book) {
+  const out = [];
+  for (const m of (book.connections || "").matchAll(/#(\d{2,4})\s*(?:\(([^)]*)\))?/g)) {
+    if (!out.some((x) => x.code === m[1])) out.push({ code: m[1], label: (m[2] || "").trim() });
+  }
+  return out;
+}
+
+// The Notion import kept "Por que ler" and "Conexões no registro" as notes; they now have their own
+// fields on the book. Runs once per note (the note is removed after its text moves).
+const MOVE = [["Por que ler: ", "why"], ["Conexões no registro (FilosoX): ", "connections"]];
+export async function moveNotesToFields() {
+  const moves = [];
+  for (const n of S.notes) {
+    const hit = MOVE.find(([prefix]) => (n.text || "").startsWith(prefix));
+    const b = hit && bookById(n.bookId);
+    if (b && !b[hit[1]]) moves.push({ n, b, field: hit[1], text: n.text.slice(hit[0].length).trim() });
+  }
+  if (!moves.length) return 0;
+  for (const { b, field, text } of moves) b[field] = text;
+  const books = [...new Set(moves.map((m) => m.b))];
+  await call("import", { method: "POST", body: JSON.stringify({ docs: books.map(({ id, ...data }) => ({ path: `books/${id}`, data })) }) });
+  for (const { n } of moves) await call("write", { method: "POST", body: JSON.stringify({ op: "delete", path: `notes/${n.id}` }) });
+  await refresh();
+  return moves.length;
 }
 
 // ---- reading helpers ----

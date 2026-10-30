@@ -17,15 +17,17 @@ Abra http://localhost:8787/?k=teste
 
 ## O que já funciona (MVP)
 
-- Estante por situação (Lendo agora, Lido, Quero ler e Abandonado) ou por tema, com divisores entre os temas; lombadas de couro com largura pelo número de páginas e marcador nos livros em leitura
+- Estante por situação (Lendo agora, Lido, Quero ler e Abandonado), por tema ou por ideia do FilosoX, com divisores; lombadas de couro na cor do tema, com largura pelo número de páginas e marcador nos livros em leitura
+- Fila com prioridade em Lendo agora e Quero ler: arrastar para ordenar, número de cada livro na prateleira
+- Por que ler e Conexões com o FilosoX na ficha; cada #ideia leva à estante daquela ideia
 - Animação: o livro sai da estante, gira, a capa abre e mostra as páginas; ao fechar, volta para o mesmo lugar
 - Ficha: situação, datas, progresso por página ou em % (como no Kindle), notas de 1 a 5 por critério com média, nota geral, resenha, releituras
 - Anotações: citação, reflexão ou resumo, com página
-- Novo livro pela busca (Google Books e Open Library) ou à mão; editar dados, cor da lombada, tags
+- Novo livro pela busca (Google Books e Open Library) ou à mão; editar dados, cor da lombada, temas
 - Completar pelo catálogo: traz capa, páginas, ano e ISBN para um livro já na estante (só os campos que você marcar)
-- Procurar na estante por título, autor, gênero ou tag
+- Procurar na estante por título, autor, tema ou #ideia
 - Metas: livros e páginas por ano, ritmo, estante do ano com lugares vazios, gráfico mês a mês; e a visão Tudo, com todos os lidos separados por ano
-- Ajustes: critérios por tipo de livro, cópia de segurança em JSON e importar (restaurar cópia ou trazer livros de outro lugar)
+- Ajustes: critérios por tipo de livro, cores dos temas, cópia de segurança em JSON e importar (restaurar cópia ou trazer livros de outro lugar)
 - Mesma biblioteca no PC e no celular (dados no Cloudflare D1), ícone e modo app
 
 ## O que falta
@@ -41,7 +43,7 @@ Abra http://localhost:8787/?k=teste
 - Ler o código de barras (ISBN) com a câmera do celular
 - Diário de leitura: páginas por dia, sequência de dias lendo
 - Estatísticas: gêneros, autores, nota média, mapa da nacionalidade dos autores
-- Estantes personalizadas (coleções) e arrastar livros para reordenar
+- Estantes personalizadas (coleções)
 - Anotações: editar, buscar em todas, citação do dia na entrada, cartão para compartilhar
 - Importar do Goodreads (CSV)
 - Empréstimos: para quem e quando

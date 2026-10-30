@@ -1,6 +1,6 @@
-import { S, getKey, setKey, takeKeyFromUrl, loadCache, refresh, bookById, currentRead, newRead, write } from "./api.js";
+import { S, getKey, setKey, takeKeyFromUrl, loadCache, refresh, bookById, currentRead, newRead, write, moveNotesToFields } from "./api.js";
 import { $, $$, esc, toast } from "./util.js";
-import { renderShelves, fillShelves } from "./shelf.js";
+import { renderShelves, fillShelves, showView, wireReorder, isReordering } from "./shelf.js";
 import { openBook, closeBook } from "./book-open.js";
 import { fillSpread, clearSpread, redrawIfIdle } from "./book-page.js";
 import { newBookDialog, editBookDialog, catalogDialog } from "./forms.js";
@@ -48,6 +48,8 @@ async function start() {
   }
   $(".top").hidden = false;
   route();
+  // one time: "Por que ler" and "Conexões" notes from the Notion import become fields of the book
+  moveNotesToFields().then((n) => { if (n && $(".shelves", view)) fillShelves(view, filter); }).catch(() => {});
 }
 
 // ---------- routes: #/  #/livro/<id>  #/metas  #/ajustes ----------
@@ -72,6 +74,12 @@ async function show(id) {
   document.body.classList.add("reading");
   await openBook(layer, book, spineOf(id), (spread) => fillSpread(spread, id, {
     onClose: () => { location.hash = "#/"; },
+    onIdea: (code) => {
+      // close the book onto the shelf of that idea
+      filter = `#${code}`;
+      showView(view, "ideias", filter);
+      location.hash = "#/";
+    },
     onEdit: (bid) => editBookDialog(bid, () => { redrawIfIdle(); fillShelves(view, filter); }),
     onCatalog: (bid) => catalogDialog(bid, async (data) => {
       // a % typed before the page count was known becomes a page now
@@ -110,7 +118,7 @@ const spineOf = (id) => { const all = spinesOf(id); return all[clicked.id === id
 // ---------- events ----------
 view.addEventListener("click", (e) => {
   const spine = e.target.closest(".spine[data-id]");
-  if (spine && !e.target.closest(".goals")) { clicked = { id: spine.dataset.id, n: spinesOf(spine.dataset.id).indexOf(spine) }; location.hash = `#/livro/${encodeURIComponent(spine.dataset.id)}`; return; }
+  if (spine && !e.target.closest(".goals") && !isReordering(spine)) { clicked = { id: spine.dataset.id, n: spinesOf(spine.dataset.id).indexOf(spine) }; location.hash = `#/livro/${encodeURIComponent(spine.dataset.id)}`; return; }
   const add = e.target.closest("[data-add]");
   if (add) newBookDialog(add.dataset.add, () => fillShelves(view, filter));
 });
@@ -123,6 +131,7 @@ layer.addEventListener("click", (e) => { if (e.target.matches(".dim, .stage")) l
 addEventListener("keydown", (e) => { if (e.key === "Escape" && openId && !$("#modal").open) location.hash = "#/"; });
 $("#add-book").onclick = () => newBookDialog("quero", () => { if ($(".shelves", view)) fillShelves(view, filter); });
 addEventListener("hashchange", route);
+wireReorder(view);
 
 // Coming back to the app (or to the tab) picks up what was changed on the other device.
 let last = 0;

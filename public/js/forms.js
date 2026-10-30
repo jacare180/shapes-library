@@ -19,9 +19,12 @@ function formHTML(b = {}, { status } = {}) {
       ${Object.entries(KINDS).map(([k, v]) => `<label><input type="radio" name="kind" value="${k}" ${(b.kind || "ficcao") === k ? "checked" : ""}><span>${v}</span></label>`).join("")}
     </fieldset>
     <label class="wide">Temas <input name="tags" placeholder="Separe com vírgula: Filosofia política, Judaísmo, IA..." value="${esc((b.tags || []).join(", "))}"></label>
+    <label class="wide">Por que ler <textarea name="why" rows="3" placeholder="O que este livro tem para você">${esc(b.why || "")}</textarea></label>
+    <label class="wide">Conexões com o FilosoX <textarea name="connections" rows="2" placeholder="#019 (tradição como linhagem de textos), #026">${esc(b.connections || "")}</textarea>
+      <small class="field-hint">Escreva as ideias como #019; o texto entre parênteses vira a descrição.</small></label>
     <label class="wide">Capa (endereço da imagem) <input name="cover" type="url" value="${esc(b.cover || "")}"></label>
     <fieldset class="wide swatches"><legend>Cor da lombada</legend>
-      <label><input type="radio" name="color" value="" ${!color ? "checked" : ""}><span class="auto" title="Automática">auto</span></label>
+      <label><input type="radio" name="color" value="" ${!color ? "checked" : ""}><span class="auto" title="Cor do primeiro tema">do tema</span></label>
       ${LEATHER.map((c) => `<label><input type="radio" name="color" value="${c}" ${color === c ? "checked" : ""}><span style="--c:${c}"></span></label>`).join("")}
     </fieldset>
     ${status ? `<label class="wide">Em qual prateleira?
@@ -41,6 +44,8 @@ function readForm(form) {
     tags: list("tags"),
     cover: f.get("cover").trim(),
     color: f.get("color") || "",
+    why: f.get("why").trim(),
+    connections: f.get("connections").trim(),
   };
 }
 

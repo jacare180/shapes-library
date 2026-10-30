@@ -1,9 +1,12 @@
-// Settings: rating criteria per kind of book, backup and import, leaving this device.
+// Settings: rating criteria per kind of book, theme colours, backup and import, leaving this device.
 import { S, write, setKey, importLibrary } from "./api.js";
-import { esc, KINDS, today, toast } from "./util.js";
+import { esc, KINDS, today, toast, LEATHER, THEME_DEFAULTS, themeColor } from "./util.js";
+
+const SWATCHES = [...new Set([...Object.values(THEME_DEFAULTS), ...LEATHER])];
 
 export function renderSettings(view) {
   const crit = S.config.criteria || {};
+  const themes = [...new Set(S.books.flatMap((b) => b.tags || []).filter(Boolean))].sort((a, b) => a.localeCompare(b, "pt"));
   view.innerHTML = `
     <section class="settings">
       <h1>Ajustes</h1>
@@ -14,6 +17,13 @@ export function renderSettings(view) {
         ${Object.entries(KINDS).map(([k, v]) => `<label>${v}<textarea name="${k}" rows="6">${esc((crit[k] || []).join("\n"))}</textarea></label>`).join("")}
         <div class="actions"><button class="brass" type="submit">Salvar critérios</button></div>
       </form>
+
+      <h2 class="label"><span>Cores dos temas</span></h2>
+      <p class="hint">A lombada de cada livro usa a cor do seu primeiro tema, a menos que você escolha outra cor no próprio livro.</p>
+      ${themes.length ? `<div class="theme-colors">${themes.map((t) => `
+        <fieldset class="theme-row" data-theme="${esc(t)}"><legend><span class="dot" style="--c:${themeColor(t)}"></span>${esc(t)}</legend>
+          <div class="swatches">${SWATCHES.map((c) => `<label><input type="radio" name="tc-${esc(t)}" value="${c}" ${themeColor(t) === c ? "checked" : ""}><span style="--c:${c}"></span></label>`).join("")}</div>
+        </fieldset>`).join("")}</div>` : `<p class="hint">Nenhum livro tem tema ainda.</p>`}
 
       <h2 class="label"><span>Cópia de segurança</span></h2>
       <p class="hint">Baixa um arquivo com todos os livros, leituras, anotações e metas.</p>
@@ -35,6 +45,13 @@ export function renderSettings(view) {
     const lists = Object.fromEntries(Object.keys(KINDS).map((k) => [k, [...new Set(f.get(k).split("\n").map((s) => s.trim()).filter(Boolean))]]));
     await write("set", "config/criteria", lists).then(() => toast("Critérios salvos.")).catch(() => {});
   };
+  view.querySelector(".theme-colors")?.addEventListener("change", async (e) => {
+    const row = e.target.closest("[data-theme]");
+    if (!row) return;
+    row.querySelector(".dot").style.setProperty("--c", e.target.value);
+    const colors = { ...(S.config.themeColors || {}), [row.dataset.theme]: e.target.value };
+    await write("set", "config/themeColors", colors).then(() => toast(`Cor de ${row.dataset.theme} salva.`)).catch(() => {});
+  });
   view.querySelector('[data-act="backup"]').onclick = () => {
     const { books, reads, notes, goals, config } = S;
     const blob = new Blob([JSON.stringify({ exportedAt: new Date().toISOString(), books, reads, notes, goals, config }, null, 2)], { type: "application/json" });
