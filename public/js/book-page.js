@@ -41,6 +41,22 @@ const stars = (value) =>
   `<span class="stars" role="radiogroup" aria-label="Nota geral">${[1, 2, 3, 4, 5].map((v) =>
     `<button type="button" role="radio" aria-checked="${value === v}" class="${value >= v ? "on" : ""}" data-overall="${v}" aria-label="${v} de 5">★</button>`).join("")}</span>`;
 
+// Who wrote the "Por que ler": you, or the old chat (texts that came with the Notion import).
+const whyIsMine = (b) => (b.whyBy ? b.whyBy === "eu" : !String(b.id).startsWith("notion-"));
+
+function whyHTML(b, editing = false) {
+  if (editing) return `<div class="why editing"><h3>Por que ler</h3>
+      <textarea name="why-edit" rows="4" placeholder="Por que você quer ler este livro?">${esc(whyIsMine(b) ? b.why || "" : "")}</textarea>
+      <div class="why-actions"><button type="button" class="linkish" data-act="why-cancel">Cancelar</button><button type="button" class="brass" data-act="why-save">Guardar</button></div>
+    </div>`;
+  if (!b.why) return `<div class="why empty"><button type="button" class="linkish" data-act="why-edit">Escrever por que ler este livro</button></div>`;
+  const mine = whyIsMine(b);
+  return `<div class="why${mine ? "" : " theirs"}"><h3>Por que ler${mine ? "" : ` <small>texto do chat antigo (Notion)</small>`}</h3>
+      <p>${esc(b.why).replace(/\n/g, "<br>")}</p>
+      <p class="why-actions"><button type="button" class="linkish" data-act="why-edit">${mine ? "Editar" : "Escrever o meu"}</button></p>
+    </div>`;
+}
+
 // FilosoX references become buttons that open the shelf of that idea; text without references shows as is.
 function connectionsHTML(b) {
   if (!b.connections) return "";
@@ -75,7 +91,7 @@ function drawLeft() {
       </div>
     </header>
 
-    ${b.why ? `<div class="why"><h3>Por que ler</h3><p>${esc(b.why).replace(/\n/g, "<br>")}</p></div>` : ""}
+    ${whyHTML(b)}
     ${connectionsHTML(b)}
 
     <div class="status" role="radiogroup" aria-label="Situação">
@@ -201,6 +217,17 @@ async function onClick(e) {
   if (act === "edit") return ctx.onEdit(ctx.bookId);
   if (act === "catalog") return ctx.onCatalog(ctx.bookId);
   if (act === "save-review") return saveReview();
+  if (act === "why-edit" || act === "why-cancel") {
+    const block = ctx.spread.querySelector(".why");
+    block.outerHTML = whyHTML(bookById(ctx.bookId), act === "why-edit");
+    ctx.spread.querySelector('textarea[name="why-edit"]')?.focus();
+    return;
+  }
+  if (act === "why-save") {
+    const why = ctx.spread.querySelector('textarea[name="why-edit"]').value.trim();
+    await write("update", `books/${ctx.bookId}`, { why, whyBy: "eu" }).catch(() => {});
+    return drawLeft();
+  }
   if (act === "reread") {
     await newRead(ctx.bookId, "lendo").catch(() => {});
     return drawLeft();

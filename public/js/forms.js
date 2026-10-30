@@ -191,6 +191,7 @@ export function editBookDialog(bookId, onSaved) {
     e.preventDefault();
     const data = readForm(e.target);
     if (!data.title) return;
+    if (data.why !== (b.why || "")) data.whyBy = "eu"; // rewriting it makes it yours
     m.close();
     await write("update", `books/${bookId}`, data).catch(() => {});
     onSaved?.();

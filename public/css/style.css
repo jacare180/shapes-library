@@ -185,27 +185,33 @@ main { max-width: 1240px; margin: 0 auto; padding: 22px 16px 80px; }
 }
 .spine .s-author { flex: none; max-height: 34%; writing-mode: vertical-rl; white-space: nowrap; overflow: hidden; font-size: 11px; font-variant: small-caps; letter-spacing: 0.06em; opacity: 0.85; }
 .spine[style*="--w:2"] .s-author { display: none; }
-.divider-slot { padding-inline: 6px 4px; }
+/* Theme and year dividers: a low, wide brass sign standing on the shelf (not a tall spine), with
+   a gap before it, so a new group reads at a glance. */
+.divider-slot { padding-left: 22px; padding-right: 6px; }
+.books > .divider-slot:first-child { padding-left: 0; }
 .divider {
   position: relative;
-  display: flex; flex-direction: column; align-items: center; gap: 8px;
-  width: 30px; height: calc(var(--row) - var(--plank) - 18px);
-  padding: 12px 0;
-  border-radius: 4px 4px 1px 1px;
-  background: linear-gradient(90deg, var(--wood-lo), var(--wood-hi) 35%, var(--wood) 70%, var(--wood-lo));
-  box-shadow: 3px 0 5px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(0, 0, 0, 0.35);
+  display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 2px;
+  width: 92px; min-height: 64px;
+  padding: 12px 8px 8px;
+  border-radius: 3px;
+  text-align: center;
+  color: #34230c;
+  background: linear-gradient(var(--brass-hi), var(--brass) 55%, var(--brass-lo));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 3px 6px rgba(0, 0, 0, 0.55);
 }
-.divider b {
-  flex: 1; min-height: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
-  writing-mode: vertical-rl;
-  padding: 8px 3px;
-  border-radius: 2px;
-  font: 700 14px/1 var(--display); font-variant: small-caps; letter-spacing: 0.06em;
-  color: #3b2a12;
-  background: linear-gradient(90deg, var(--brass-lo), var(--brass-hi) 45%, var(--brass) 70%, var(--brass-lo));
+/* the stand behind the sign */
+.divider::after {
+  content: ""; position: absolute; left: 50%; bottom: -8px; width: 40px; height: 8px; transform: translateX(-50%);
+  background: linear-gradient(var(--brass-lo), #5a4018); border-radius: 0 0 2px 2px;
 }
-.divider small { font: italic 13px var(--text); color: var(--cream-dim); }
-.divider[style*="--tc"] b { box-shadow: inset 0 -6px 0 var(--tc), inset 0 6px 0 var(--tc); }
+.divider::before {
+  content: ""; position: absolute; left: 0; right: 0; top: 0; height: 6px; border-radius: 3px 3px 0 0;
+  background: var(--tc, transparent);
+}
+.divider-slot { padding-bottom: calc(var(--plank) + 8px); }
+.divider b { font: 700 15px/1.1 var(--display); font-variant: small-caps; letter-spacing: 0.03em; overflow-wrap: anywhere; text-shadow: 0 1px 0 rgba(255, 240, 200, 0.5); }
+.divider small { font: italic 13px var(--text); color: #5a4220; }
 .prio {
   position: absolute; left: 50%; bottom: -17px; transform: translateX(-50%);
   min-width: 18px; height: 18px; padding: 0 4px; border-radius: 9px;
@@ -336,6 +342,13 @@ main { max-width: 1240px; margin: 0 auto; padding: 22px 16px 80px; }
 .leaf-tabs button.on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
 
 /* record page */
+.why.theirs { border-left-style: dashed; background: rgba(0, 0, 0, 0.03); }
+.why.theirs p { color: var(--ink-soft); }
+.why h3 small { font: italic 13px var(--text); font-variant: normal; letter-spacing: 0; color: var(--ink-soft); margin-left: 6px; }
+.why.empty { border: 1px dashed var(--rule); background: none; }
+.why textarea { display: block; width: 100%; margin-top: 6px; padding: 8px 10px; border: 1px solid var(--rule); border-radius: 3px; background: rgba(255, 255, 255, 0.5); color: var(--ink); font-size: 16px; resize: vertical; }
+.why-actions { display: flex; justify-content: flex-end; align-items: center; gap: 14px; margin-top: 6px; }
+.why-actions .brass { font-size: 15px; padding: 4px 14px; }
 .why, .connections { margin: 0 0 14px; padding: 10px 14px; border-left: 2px solid var(--accent); background: rgba(124, 36, 48, 0.05); }
 .why h3, .connections h3 { font: 700 15px var(--display); font-variant: small-caps; letter-spacing: 0.05em; color: var(--accent); }
 .why p { font-size: 16px; margin-top: 2px; }
