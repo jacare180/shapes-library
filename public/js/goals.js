@@ -1,9 +1,11 @@
 // Yearly goal: a shelf that fills up with the books finished that year, with empty places still to fill.
+// "Tudo" shows every book ever finished, year after year, with a divider per year.
 import { S, write, bookById } from "./api.js";
 import { esc, MONTHS_SHORT } from "./util.js";
-import { spineHTML } from "./shelf.js";
+import { spineHTML, dividerHTML } from "./shelf.js";
 
 let year = new Date().getFullYear();
+let all = false;
 
 function finishedIn(y) {
   return S.reads
@@ -29,7 +31,63 @@ function pace(goal, done, y) {
   return `${where} Faltam ${left} em ${daysLeft} dias: cerca de 1 livro a cada ${every} dias.`;
 }
 
+const nav = () => `
+  <div class="goal-tabs" role="group" aria-label="Período">
+    <button type="button" data-tab="ano" aria-pressed="${!all}">Por ano</button>
+    <button type="button" data-tab="tudo" aria-pressed="${all}">Tudo</button>
+  </div>`;
+
+function renderAll(view) {
+  const done = S.reads.filter((r) => r.status === "lido" && bookById(r.bookId));
+  const pages = done.reduce((n, r) => n + (bookById(r.bookId).pages || 0), 0);
+  const books = new Set(done.map((r) => r.bookId)).size;
+  const byYear = new Map();
+  for (const r of done) {
+    const y = (r.end || "").slice(0, 4) || "";
+    if (!byYear.has(y)) byYear.set(y, []);
+    byYear.get(y).push(r);
+  }
+  const years = [...byYear.keys()].filter(Boolean).sort();
+  const peak = Math.max(1, ...years.map((y) => byYear.get(y).length));
+  const order = [...years.slice().reverse(), ...(byYear.has("") ? [""] : [])];
+
+  view.innerHTML = `
+    <section class="goals">
+      ${nav()}
+      <div class="year-nav"><h1>Tudo o que li</h1></div>
+      <div class="goal-numbers">
+        <p><b>${books}</b> ${books === 1 ? "livro lido" : "livros lidos"}</p>
+        <p><b>${pages.toLocaleString("pt-BR")}</b> páginas</p>
+        ${done.length > books ? `<p><b>${done.length - books}</b> ${done.length - books === 1 ? "releitura" : "releituras"}</p>` : ""}
+      </div>
+      ${byYear.has("") ? `<p class="pace">${byYear.get("").length} sem data de fim: coloque a data na ficha para entrarem no ano certo.</p>` : ""}
+
+      <h2 class="label"><span>Estante de todos os lidos</span></h2>
+      ${done.length ? `<div class="case"><div class="books">
+        ${order.map((y) => dividerHTML(y || "Sem data", byYear.get(y).length) + byYear.get(y)
+          .sort((a, b) => (a.end || "").localeCompare(b.end || ""))
+          .map((r) => `<div class="slot">${spineHTML(bookById(r.bookId), r)}</div>`).join("")).join("")}
+      </div></div>` : `<p class="hint">Quando terminar um livro, ele aparece aqui.</p>`}
+
+      ${years.length ? `<h2 class="label"><span>Ano a ano</span></h2>
+      <div class="months" style="grid-template-columns:repeat(${Math.max(years.length, 3)},1fr)">
+        ${years.map((y) => `<div class="m"><i style="height:${(100 * byYear.get(y).length) / peak}%"></i><b>${byYear.get(y).length}</b><span>${y}</span></div>`).join("")}
+      </div>` : ""}
+    </section>`;
+  wireTabs(view);
+}
+
+function wireTabs(view) {
+  view.querySelector(".goal-tabs").onclick = (e) => {
+    const b = e.target.closest("[data-tab]");
+    if (!b) return;
+    all = b.dataset.tab === "tudo";
+    renderGoals(view);
+  };
+}
+
 export function renderGoals(view) {
+  if (all) return renderAll(view);
   const g = S.goals[year] || {};
   const done = finishedIn(year);
   const pages = done.reduce((n, r) => n + (bookById(r.bookId).pages || 0), 0);
@@ -41,6 +99,7 @@ export function renderGoals(view) {
 
   view.innerHTML = `
     <section class="goals">
+      ${nav()}
       <div class="year-nav">
         <button type="button" data-year="-1" aria-label="Ano anterior">‹</button>
         <h1>${year}</h1>
@@ -71,6 +130,7 @@ export function renderGoals(view) {
       </div>
     </section>`;
 
+  wireTabs(view);
   view.querySelectorAll("[data-year]").forEach((b) => (b.onclick = () => { year += +b.dataset.year; renderGoals(view); }));
   view.querySelector(".goal-form").onchange = async (e) => {
     const f = new FormData(e.currentTarget);

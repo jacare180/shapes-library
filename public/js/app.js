@@ -20,7 +20,7 @@ function door(msg = "") {
     <section class="door">
       <div class="door-plaque">
         <p class="small">Biblioteca particular</p>
-        <h1>Shapes Library</h1>
+        <h1>ShapeX Library</h1>
         <form>
           <label>Chave <input name="k" type="password" autocomplete="current-password" required autofocus></label>
           <button class="brass" type="submit">Entrar</button>
@@ -101,12 +101,16 @@ async function shut() {
   if (location.hash.startsWith("#/livro/")) route(); // another book was asked for while this one closed
 }
 
-const spineOf = (id) => view.querySelector(`.spine[data-id="${CSS.escape(id)}"]`);
+// A book with two themes stands twice on the theme shelf: it opens from, and goes back to, the copy
+// that was clicked (by position, since the shelves redraw in between).
+let clicked = { id: null, n: 0 };
+const spinesOf = (id) => [...view.querySelectorAll(`.spine[data-id="${CSS.escape(id)}"]`)];
+const spineOf = (id) => { const all = spinesOf(id); return all[clicked.id === id ? clicked.n : 0] || all[0]; };
 
 // ---------- events ----------
 view.addEventListener("click", (e) => {
   const spine = e.target.closest(".spine[data-id]");
-  if (spine && !e.target.closest(".goals")) { location.hash = `#/livro/${encodeURIComponent(spine.dataset.id)}`; return; }
+  if (spine && !e.target.closest(".goals")) { clicked = { id: spine.dataset.id, n: spinesOf(spine.dataset.id).indexOf(spine) }; location.hash = `#/livro/${encodeURIComponent(spine.dataset.id)}`; return; }
   const add = e.target.closest("[data-add]");
   if (add) newBookDialog(add.dataset.add, () => fillShelves(view, filter));
 });

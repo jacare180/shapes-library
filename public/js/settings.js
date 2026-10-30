@@ -38,7 +38,7 @@ export function renderSettings(view) {
   view.querySelector('[data-act="backup"]').onclick = () => {
     const { books, reads, notes, goals, config } = S;
     const blob = new Blob([JSON.stringify({ exportedAt: new Date().toISOString(), books, reads, notes, goals, config }, null, 2)], { type: "application/json" });
-    const a = Object.assign(document.createElement("a"), { href: URL.createObjectURL(blob), download: `shapes-library-${today()}.json` });
+    const a = Object.assign(document.createElement("a"), { href: URL.createObjectURL(blob), download: `shapex-library-${today()}.json` });
     a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   };
@@ -51,7 +51,7 @@ export function renderSettings(view) {
       const n = await importLibrary(JSON.parse(await f.text()));
       msg.textContent = `${n} ${n === 1 ? "livro importado" : "livros importados"}. Eles já estão na estante.`;
     } catch {
-      msg.textContent = "Não consegui importar este arquivo. Confira se é uma cópia da Shapes Library.";
+      msg.textContent = "Não consegui importar este arquivo. Confira se é uma cópia da ShapeX Library.";
     }
     e.target.value = "";
   };

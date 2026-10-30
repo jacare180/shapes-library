@@ -1,4 +1,4 @@
-# Shapes Library
+# ShapeX Library
 
 Biblioteca particular: livros lidos, em leitura e para ler, anotações, notas por critério e metas anuais. Clicar num livro o tira da estante e abre com animação.
 
@@ -17,14 +17,14 @@ Abra http://localhost:8787/?k=teste
 
 ## O que já funciona (MVP)
 
-- Estante com prateleiras Lendo agora, Lido, Quero ler e Abandonado; lombadas de couro com largura pelo número de páginas e marcador nos livros em leitura
+- Estante por situação (Lendo agora, Lido, Quero ler e Abandonado) ou por tema, com divisores entre os temas; lombadas de couro com largura pelo número de páginas e marcador nos livros em leitura
 - Animação: o livro sai da estante, gira, a capa abre e mostra as páginas; ao fechar, volta para o mesmo lugar
 - Ficha: situação, datas, progresso por página ou em % (como no Kindle), notas de 1 a 5 por critério com média, nota geral, resenha, releituras
 - Anotações: citação, reflexão ou resumo, com página
 - Novo livro pela busca (Google Books e Open Library) ou à mão; editar dados, cor da lombada, tags
 - Completar pelo catálogo: traz capa, páginas, ano e ISBN para um livro já na estante (só os campos que você marcar)
 - Procurar na estante por título, autor, gênero ou tag
-- Metas: livros e páginas por ano, ritmo, estante do ano com lugares vazios, gráfico mês a mês
+- Metas: livros e páginas por ano, ritmo, estante do ano com lugares vazios, gráfico mês a mês; e a visão Tudo, com todos os lidos separados por ano
 - Ajustes: critérios por tipo de livro, cópia de segurança em JSON e importar (restaurar cópia ou trazer livros de outro lugar)
 - Mesma biblioteca no PC e no celular (dados no Cloudflare D1), ícone e modo app
 

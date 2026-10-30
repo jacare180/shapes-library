@@ -1,6 +1,8 @@
-# Shapes Library
+# ShapeX Library
 
 Biblioteca digital pessoal do Beny: livros lidos, em leitura e para ler, anotações, notas por critério e metas anuais. Vibe de biblioteca à noite (madeira, placas de latão, lombadas de couro, papel creme). Clicar num livro o tira da estante e abre com animação 3D.
+
+Nome: **ShapeX Library** (até 30/10/2026 era Shapes Library). O nome visível já mudou; endereço, repo, Worker, banco D1 e chaves do localStorage (`shapes-*`) continuam com `shapes-library` até o usuário decidir trocar (trocar o Worker muda o endereço, e trocar o nome do banco no `wrangler.jsonc` criaria um banco novo e vazio).
 
 No ar em https://shapes-library.benyforma.workers.dev (Workers Builds, publica a cada push na `main`). Repo `jacare180/shapes-library` (privado). Nasceu numa pasta do repo `jacare180/beny`; o Claude não consegue criar repositórios (a integração do GitHub recusa com 403), então o usuário criou este vazio.
 
@@ -10,11 +12,13 @@ Cloudflare Workers (site estático + API) com banco D1, HTML/CSS/JS puro sem bui
 
 - `public/`: o site. `index.html` carrega `js/app.js` como módulo ES. Rotas por hash: `#/` (estante), `#/livro/<id>`, `#/metas`, `#/ajustes`
   - `js/api.js`: estado em memória, cópia em localStorage (abre na hora e offline), gravação otimista
-  - `js/shelf.js`: prateleiras por situação (Lendo agora, Lido, Quero ler, Abandonado), lombadas com largura pelo número de páginas
+  - `js/shelf.js`: duas visões (lembradas no aparelho): por situação (Lendo agora, Lido, Quero ler, Abandonado) ou por tema, numa estante só com um divisor de madeira por tema; livro com dois temas aparece nos dois. Lombadas com largura pelo número de páginas e altura de 214 a 257 px
+  - Temas de um livro = campo `tags` (rótulo "Temas" no cadastro). Os livros do Notion já vieram com os temas
   - `js/book-open.js`: o livro 3D (capas, lombada, bordas das páginas) e as animações de abrir, fechar e virar página. A origem da transformação fica na lombada: no começo ela coincide com a lombada clicada na estante e, aberto, fica no meio da tela
-  - `js/book-page.js`: o que está escrito no livro aberto. Página esquerda: ficha, situação, datas, progresso, notas por critério, nota geral, resenha. Direita: anotações (citação, reflexão, resumo, com página)
+  - `js/book-page.js`: o que está escrito no livro aberto. Página esquerda: ficha, situação, datas, progresso, notas por critério, nota geral, resenha. A resenha tem botão "Guardar resenha" (e também salva ao sair da caixa). Direita: anotações (citação, reflexão, resumo, com página)
   - `js/forms.js`: novo livro (busca nos catálogos ou à mão), editar dados e completar pelo catálogo (capa, páginas, ano, ISBN; vazios vêm marcados, os preenchidos só trocam se marcar)
-  - `js/goals.js`: meta anual de livros e páginas, ritmo, "estante do ano" com lugares vazios, gráfico mês a mês
+  - `js/goals.js`: "Por ano" (meta de livros e páginas, ritmo, estante do ano com lugares vazios, mês a mês) e "Tudo" (todos os lidos, divisor por ano, ano a ano; lido sem data de fim fica em "Sem data")
+  - `js/catalog.js`: Google Books e Open Library, usado pela página e pelo Worker. A página pergunta direto aos catálogos e ao Worker ao mesmo tempo: o Google Books sem chave conta a cota por quem chama, e o Worker divide endereço com muitos sites (dá 429 "Queries per day"). Resultados iguais das duas fontes viram um só
   - `js/settings.js`: critérios de avaliação por tipo, backup em JSON, importar (backup ou arquivo preparado), sair do aparelho
   - Livro pode ter `link` e `linkLabel` (ex.: a página do Notion), mostrados na ficha
 - `src/worker.js`: API, tudo exige a chave (`x-library-key` = secret `KEY_OWNER`). Só `/api/*` passa pelo Worker (`run_worker_first`); o resto são arquivos de `public/`
@@ -23,7 +27,7 @@ Cloudflare Workers (site estático + API) com banco D1, HTML/CSS/JS puro sem bui
   - Progresso: `read.page` e `read.pct` andam juntos (`progressOf` em `api.js`). Livro sem número de páginas usa só o %; quando o catálogo traz as páginas, o % vira página
   - **Livro** e **Leitura** são separados: cada releitura é uma nova leitura com suas próprias datas e notas. A leitura atual é a mais recente
   - Livro removido fica com `deleted: true` (some da API, mas continua no banco)
-  - Busca: Google Books (secret opcional `GOOGLE_BOOKS_KEY`) e Open Library ao mesmo tempo; se um falha, o outro responde. Com `SHAPES_FAKE_SEARCH` responde com o catálogo de exemplo de `src/sample-search.js`
+  - Busca no Worker é a reserva da busca da página, e o único lugar que usa o secret opcional `GOOGLE_BOOKS_KEY`. Com `SHAPES_FAKE_SEARCH`, `/api/state` avisa `fakeSearch` e a página só usa o catálogo de exemplo de `src/sample-search.js`
 - `wrangler.jsonc`: produção é o Worker `shapes-library` com o banco `shapes-library`; testes vão para `--env preview`, Worker `shapes-library-preview` com o banco `shapes-library-preview`. Teste nunca toca nos dados reais (no SA dos Boets a branch mexia neles)
 - `dev/seed.mjs`: põe livros de exemplo numa biblioteca local
 
@@ -38,7 +42,7 @@ npm run seed                     # livros de exemplo
 
 ## Notion
 
-Antes da Shapes Library, as leituras ficavam na base "Fila de leitura" do Notion (`collection://73872891-253b-43b7-b5e7-77fa2d029b1b`, página "Livros para ler"), lida pelo artifact "Estante de Leitura". Importada em 29/10/2026 com ids `notion-<fim do id da página>`: Por que ler, Observação e Conexões no registro (FilosoX) viraram anotações; Tema virou gênero e tags; Ordem virou a ordem nas prateleiras.
+Antes da ShapeX Library, as leituras ficavam na base "Fila de leitura" do Notion (`collection://73872891-253b-43b7-b5e7-77fa2d029b1b`, página "Livros para ler"), lida pelo artifact "Estante de Leitura". Importada em 29/10/2026 com ids `notion-<fim do id da página>`: Por que ler, Observação e Conexões no registro (FilosoX) viraram anotações; Tema virou gênero e tags; Ordem virou a ordem nas prateleiras.
 
 ## Regras
 
@@ -60,4 +64,4 @@ Antes da Shapes Library, as leituras ficavam na base "Fila de leitura" do Notion
 
 ## Pendente
 
-Lista completa em `README.md` ("O que falta"). Primeiro: testar a busca real e o iPhone.
+Lista completa em `README.md` ("O que falta"). Primeiro: confirmar no site publicado que a busca direta acha "Os judeus e as palavras" e "The Courage to Be Disliked"; testar no iPhone.

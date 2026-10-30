@@ -1,7 +1,9 @@
-// Shapes Library API on Cloudflare Workers + D1. The static site in public/ is served by Workers assets;
+// ShapeX Library API on Cloudflare Workers + D1. The static site in public/ is served by Workers assets;
 // only /api/* reaches this code (see run_worker_first in wrangler.jsonc).
 // Everything is private: every route needs the owner's key (x-library-key header), stored as the
 // secret KEY_OWNER, never in the repo.
+
+import { googleURL, openLibraryURL, fromGoogle, fromOpenLibrary, fetchJSON, merge } from "../public/js/catalog.js";
 
 const KEY_RE = /^(books|reads|notes|goals|config)\/[A-Za-z0-9_\-.]{1,80}$/;
 const MAX_DOC = 100_000;
@@ -44,6 +46,7 @@ async function state(env) {
     else if (row.coll === "goals") out.goals[id] = v;
     else if (row.coll === "config") out.config[id] = v;
   }
+  if (env.SHAPES_FAKE_SEARCH) out.fakeSearch = true; // local runs: the page asks the sample catalog through the Worker
   out.books = out.books.filter((b) => !b.deleted);
   const live = new Set(out.books.map((b) => b.id));
   out.reads = out.reads.filter((r) => live.has(r.bookId));
@@ -91,57 +94,21 @@ async function importDocs(req, env) {
   return json({ ok: true, count: docs.length });
 }
 
-const fetchJSON = (url) =>
-  fetch(url, { signal: AbortSignal.timeout(7000), headers: { "user-agent": "ShapesLibrary/1.0" } })
-    .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`${r.status}`))));
-
-async function openLibrary(q) {
-  const fields = "title,author_name,first_publish_year,number_of_pages_median,cover_i,isbn,subject";
-  const d = await fetchJSON(`https://openlibrary.org/search.json?q=${encodeURIComponent(q)}&limit=10&fields=${fields}`);
-  return (d.docs || []).map((b) => ({
-    title: b.title || "",
-    authors: b.author_name || [],
-    year: b.first_publish_year || null,
-    pages: b.number_of_pages_median || null,
-    cover: b.cover_i ? `https://covers.openlibrary.org/b/id/${b.cover_i}-L.jpg` : "",
-    isbn: (b.isbn || [])[0] || "",
-    genre: (b.subject || [])[0] || "",
-    source: "Open Library",
-  }));
-}
-
-async function googleBooks(q, env) {
-  const key = env.GOOGLE_BOOKS_KEY ? `&key=${env.GOOGLE_BOOKS_KEY}` : "";
-  const d = await fetchJSON(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q)}&maxResults=10&printType=books${key}`);
-  return (d.items || []).map(({ volumeInfo: v = {} }) => ({
-    title: [v.title, v.subtitle].filter(Boolean).join(": "),
-    authors: v.authors || [],
-    year: parseInt(v.publishedDate, 10) || null,
-    pages: v.pageCount || null,
-    cover: (v.imageLinks?.thumbnail || "").replace(/^http:/, "https:"),
-    isbn: (v.industryIdentifiers || []).find((i) => i.type === "ISBN_13")?.identifier || "",
-    genre: (v.categories || [])[0] || "",
-    source: "Google Books",
-  }));
-}
-
-// Both catalogs at once; one failing (down, quota) never blocks the other.
+// Fallback for the page's own search, and the only place a GOOGLE_BOOKS_KEY is used.
 async function search(q, env) {
   q = (q || "").trim().slice(0, 200);
-  if (!q) return json({ results: [] });
+  if (!q) return json({ results: [], failed: [] });
   if (env.SHAPES_FAKE_SEARCH) {
     const { fakeSearch } = await import("./sample-search.js");
     return json({ results: fakeSearch(q), failed: [] });
   }
-  const [gb, ol] = await Promise.allSettled([googleBooks(q, env), openLibrary(q)]);
-  const all = [...(gb.value || []), ...(ol.value || [])].filter((b) => b.title);
-  const seen = new Set();
-  const results = all.filter((b) => {
-    const k = `${b.title.toLowerCase()}|${(b.authors[0] || "").toLowerCase()}`;
-    return seen.has(k) ? false : seen.add(k);
-  });
-  const failed = [gb.status === "rejected" && "Google Books", ol.status === "rejected" && "Open Library"].filter(Boolean);
-  return json({ results, failed });
+  const ua = { "user-agent": "ShapeXLibrary/1.0 (personal reading log)" };
+  const [gb, ol] = await Promise.allSettled([
+    fetchJSON(googleURL(q, env.GOOGLE_BOOKS_KEY), 10000, ua).then(fromGoogle),
+    fetchJSON(openLibraryURL(q), 12000, ua).then(fromOpenLibrary),
+  ]);
+  const failed = [["Google Books", gb], ["Open Library", ol]].filter(([, r]) => r.status === "rejected").map(([name, r]) => ({ name, reason: r.reason.message }));
+  return json({ results: merge([gb.value || [], ol.value || []]), failed });
 }
 
 export default {

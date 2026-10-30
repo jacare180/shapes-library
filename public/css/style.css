@@ -21,7 +21,7 @@
   --ok: #3f6b3f;
   --display: "Cormorant Garamond", "Iowan Old Style", Georgia, serif;
   --text: "EB Garamond", "Iowan Old Style", Georgia, serif;
-  --row: 214px;
+  --row: 292px;
   --plank: 20px;
 }
 
@@ -102,6 +102,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 22px 16px 80px; }
 
 /* ---------- the bookcase ---------- */
 .shelf-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+.shelf-head .tally { flex: 1 1 260px; }
 .tally { font-style: italic; color: var(--cream-dim); }
 .find {
   width: min(100%, 360px);
@@ -178,16 +179,36 @@ main { max-width: 1240px; margin: 0 auto; padding: 22px 16px 80px; }
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  font: 700 clamp(11px, calc(var(--w) * 0.36), 16px) / 1 var(--display);
+  font: 700 clamp(12px, calc(var(--w) * 0.38), 17px) / 1 var(--display);
   letter-spacing: 0.04em;
   text-shadow: 0 1px 1px rgba(0, 0, 0, 0.6);
 }
 .spine .s-author { flex: none; max-height: 34%; writing-mode: vertical-rl; white-space: nowrap; overflow: hidden; font-size: 11px; font-variant: small-caps; letter-spacing: 0.06em; opacity: 0.85; }
 .spine[style*="--w:2"] .s-author { display: none; }
+.divider-slot { padding-inline: 6px 4px; }
+.divider {
+  position: relative;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  width: 30px; height: calc(var(--row) - var(--plank) - 18px);
+  padding: 12px 0;
+  border-radius: 4px 4px 1px 1px;
+  background: linear-gradient(90deg, var(--wood-lo), var(--wood-hi) 35%, var(--wood) 70%, var(--wood-lo));
+  box-shadow: 3px 0 5px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(0, 0, 0, 0.35);
+}
+.divider b {
+  flex: 1; min-height: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+  writing-mode: vertical-rl;
+  padding: 8px 3px;
+  border-radius: 2px;
+  font: 700 14px/1 var(--display); font-variant: small-caps; letter-spacing: 0.06em;
+  color: #3b2a12;
+  background: linear-gradient(90deg, var(--brass-lo), var(--brass-hi) 45%, var(--brass) 70%, var(--brass-lo));
+}
+.divider small { font: italic 13px var(--text); color: var(--cream-dim); }
 .ribbon { position: absolute; top: -14px; right: 22%; width: 7px; height: 26px; background: #a8262f; clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 80%, 0 100%); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5); }
 .ribbon i { display: none; }
 .spine.ghost {
-  --w: 38px; --h: 150px;
+  --w: 38px; --h: 214px;
   justify-content: center;
   background: transparent;
   box-shadow: none;
@@ -196,7 +217,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 22px 16px 80px; }
   font: 600 26px var(--display);
 }
 .spine.ghost:hover { color: var(--gold); border-color: var(--gold); }
-.spine.empty-place { --w: 32px; --h: 150px; display: block; background: transparent; box-shadow: none; border: 1.5px dashed rgba(228, 196, 126, 0.18); }
+.spine.empty-place { --w: 32px; --h: 214px; display: block; background: transparent; box-shadow: none; border: 1.5px dashed rgba(228, 196, 126, 0.18); }
 
 /* ---------- the open book ---------- */
 #book-layer { position: fixed; inset: 0; z-index: 20; }
@@ -353,6 +374,9 @@ main { max-width: 1240px; margin: 0 auto; padding: 22px 16px 80px; }
   display: block; width: 100%; margin-top: 4px; padding: 8px 10px; resize: vertical;
   border: 1px solid var(--rule); border-radius: 3px; background: rgba(255, 255, 255, 0.35); color: var(--ink); font-size: 16px;
 }
+.review-row { display: flex; align-items: center; justify-content: flex-end; gap: 12px; margin-top: 8px; }
+.review-state { font-size: 14px; font-style: italic; color: var(--ink-soft); }
+.review-row .brass { font-size: 15px; padding: 5px 14px; }
 .past { padding-left: 18px; color: var(--ink-soft); font-size: 15px; }
 .rec-foot { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 26px; padding-top: 12px; border-top: 1px solid var(--rule); }
 .rec-foot button { border: 0; background: none; padding: 0; color: var(--ink-soft); text-decoration: underline; text-underline-offset: 3px; font-size: 15px; }
@@ -415,6 +439,10 @@ main .hint { color: var(--cream-dim); }
 
 /* ---------- goals ---------- */
 .goals, .settings { max-width: 980px; margin: 0 auto; }
+.goal-tabs, .view-switch { display: inline-flex; border: 1px solid #5a4029; border-radius: 18px; overflow: hidden; }
+.goal-tabs { display: flex; width: max-content; margin: 0 auto 10px; }
+.goal-tabs button, .view-switch button { border: 0; background: rgba(0, 0, 0, 0.25); color: var(--cream-dim); padding: 6px 16px; font: 600 16px var(--display); }
+.goal-tabs button[aria-pressed="true"], .view-switch button[aria-pressed="true"] { background: linear-gradient(var(--brass-hi), var(--brass) 55%, var(--brass-lo)); color: #34230c; }
 .year-nav { display: flex; align-items: center; justify-content: center; gap: 22px; }
 .year-nav h1, .settings h1 { font: 700 46px var(--display); color: var(--gold); text-shadow: 0 2px 6px rgba(0, 0, 0, 0.5); }
 .year-nav button { border: 0; background: none; color: var(--gold); font-size: 38px; line-height: 1; padding: 0 8px; }
@@ -475,7 +503,7 @@ main .hint { color: var(--cream-dim); }
 
 /* ---------- small screens ---------- */
 @media (max-width: 700px) {
-  :root { --row: 196px; }
+  :root { --row: 280px; }
   body { font-size: 17px; }
   .top { padding-bottom: 10px; }
   .plaque { font-size: 20px; padding: 7px 14px; }

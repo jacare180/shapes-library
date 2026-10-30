@@ -37,7 +37,7 @@ function buildBook(book, W, H, D) {
     <div class="f f-spine"><span class="band"></span><span class="s-title">${esc(book.title)}</span><span class="band"></span></div>
     <div class="f f-front">
       <div class="out">${coverHTML(book)}</div>
-      <div class="in"><div class="paper endpaper"><span class="exlibris">Ex libris<br><b>Shapes Library</b></span></div></div>
+      <div class="in"><div class="paper endpaper"><span class="exlibris">Ex libris<br><b>ShapeX Library</b></span></div></div>
     </div>`;
   return el;
 }

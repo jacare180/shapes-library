@@ -15,6 +15,9 @@ export function fillSpread(spread, bookId, handlers) {
   if (spread.classList.contains("single")) spread.querySelector(".leaf.right").hidden = true;
   spread.addEventListener("click", onClick);
   spread.addEventListener("change", onChange);
+  spread.addEventListener("input", (e) => {
+    if (e.target.name === "review") ctx.spread.querySelector(".review-state").textContent = "Ainda não guardada";
+  });
   drawLeft();
   drawRight();
 }
@@ -84,6 +87,7 @@ function drawLeft() {
     <p class="mean">${mean != null ? `Média dos critérios <b>${fmtScore(mean)}</b>` : "Toque nos pontos para dar notas"}</p>
     <div class="overall"><span>Nota geral</span>${stars(r.overall || 0)}</div>
     <label class="review">Resenha curta<textarea name="review" rows="3" placeholder="O que fica deste livro?">${esc(r.review || "")}</textarea></label>
+    <div class="review-row"><span class="review-state" aria-live="polite"></span><button type="button" class="brass" data-act="save-review">Guardar resenha</button></div>
 
     ${past.length ? `<h2 class="sect">Leituras anteriores</h2><ul class="past">${past.map((p) =>
       `<li>${esc(STATUS[p.status])}, ${p.start ? fmtDate(p.start) : "?"} a ${p.end ? fmtDate(p.end) : "?"}${p.overall ? ` · ${"★".repeat(p.overall)}` : ""}</li>`).join("")}</ul>` : ""}
@@ -174,6 +178,7 @@ async function onClick(e) {
   const act = t.dataset.act;
   if (act === "edit") return ctx.onEdit(ctx.bookId);
   if (act === "catalog") return ctx.onCatalog(ctx.bookId);
+  if (act === "save-review") return saveReview();
   if (act === "reread") {
     await newRead(ctx.bookId, "lendo").catch(() => {});
     return drawLeft();
@@ -193,11 +198,25 @@ async function onClick(e) {
   }
 }
 
+async function saveReview() {
+  const box = ctx.spread.querySelector('textarea[name="review"]');
+  const state = ctx.spread.querySelector(".review-state");
+  const review = box.value.trim();
+  if (review === (read().review || "")) { state.textContent = review ? "Resenha guardada" : ""; return; }
+  state.textContent = "Guardando...";
+  try {
+    await write("update", `reads/${read().id}`, { review });
+    if (state.isConnected) state.textContent = "Resenha guardada";
+  } catch {
+    if (state.isConnected) state.textContent = "Não foi possível guardar";
+  }
+}
+
 async function onChange(e) {
   const t = e.target;
   if (!ctx || t.closest(".note-form")) return;
   if (t.name === "start" || t.name === "end") return saveRead({ [t.name]: t.value });
-  if (t.name === "review") return saveRead({ review: t.value.trim() });
+  if (t.name === "review") return saveReview(); // also saved when leaving the box, in case the button is forgotten
   if (t.name === "page" || t.name === "pct") {
     const b = bookById(ctx.bookId);
     const n = Math.max(0, parseInt(t.value, 10) || 0);

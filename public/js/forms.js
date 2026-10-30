@@ -18,7 +18,7 @@ function formHTML(b = {}, { status } = {}) {
     <fieldset class="kind"><legend>Tipo</legend>
       ${Object.entries(KINDS).map(([k, v]) => `<label><input type="radio" name="kind" value="${k}" ${(b.kind || "ficcao") === k ? "checked" : ""}><span>${v}</span></label>`).join("")}
     </fieldset>
-    <label class="wide">Tags <input name="tags" placeholder="clube do livro, presente, kindle..." value="${esc((b.tags || []).join(", "))}"></label>
+    <label class="wide">Temas <input name="tags" placeholder="Separe com vírgula: Filosofia política, Judaísmo, IA..." value="${esc((b.tags || []).join(", "))}"></label>
     <label class="wide">Capa (endereço da imagem) <input name="cover" type="url" value="${esc(b.cover || "")}"></label>
     <fieldset class="wide swatches"><legend>Cor da lombada</legend>
       <label><input type="radio" name="color" value="" ${!color ? "checked" : ""}><span class="auto" title="Automática">auto</span></label>
@@ -58,7 +58,7 @@ async function runSearch(q, box, fallback) {
   box.innerHTML = `<p class="hint">Procurando nos catálogos...</p>`;
   try {
     const d = await search(q);
-    const silent = d.failed?.length ? `sem resposta de ${d.failed.join(" e ")}` : "";
+    const silent = d.failed?.length ? `sem resposta de ${d.failed.map((f) => `${f.name} (${f.reason})`).join(" e ")}` : "";
     box.innerHTML = d.results.length
       ? `<ul>${d.results.map((b, i) => `
           <li><button type="button" data-i="${i}">
@@ -66,7 +66,7 @@ async function runSearch(q, box, fallback) {
             <span><b>${esc(b.title)}</b><br>${esc(b.authors.join(", "))}<small>${[b.year, b.pages && b.pages + " p.", b.source].filter(Boolean).map(esc).join(" · ")}</small></span>
           </button></li>`).join("")}</ul>
           ${silent ? `<p class="hint">${silent[0].toUpperCase() + silent.slice(1)}.</p>` : ""}`
-      : `<p class="hint">Nada encontrado${silent ? ` (${silent})` : ""}. Tente outro termo ${fallback}.</p>`;
+      : `<p class="hint">Nada encontrado${silent ? ` (${silent})` : ""}. Tente o título original, só o sobrenome do autor, o ISBN ${fallback}.</p>`;
     return d.results;
   } catch {
     box.innerHTML = `<p class="hint">A busca falhou. Confira a conexão ${fallback}.</p>`;

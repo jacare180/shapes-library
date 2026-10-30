@@ -1,6 +1,7 @@
 // Talks to /api and keeps the library in memory. The last copy is cached in localStorage,
 // so the shelf shows at once (and offline); the server is always the source of truth.
 import { rid, toast, today } from "./util.js";
+import { googleURL, openLibraryURL, fromGoogle, fromOpenLibrary, fetchJSON, merge } from "./catalog.js";
 
 const KEY = "shapes-key";
 const CACHE = "shapes-cache";
@@ -48,7 +49,22 @@ export async function refresh() {
   apply(await call("state"));
 }
 
-export const search = (q) => call(`search?q=${encodeURIComponent(q)}`);
+// The page asks both catalogs itself and the Worker at the same time; a catalog only counts as
+// failed when neither path got an answer from it.
+export async function search(q) {
+  const server = call(`search?q=${encodeURIComponent(q)}`);
+  if (S.fakeSearch) return server;
+  const [gb, ol, sv] = await Promise.allSettled([
+    fetchJSON(googleURL(q)).then(fromGoogle),
+    fetchJSON(openLibraryURL(q), 12000).then(fromOpenLibrary),
+    server,
+  ]);
+  const serverFailed = sv.status === "fulfilled" ? sv.value.failed.map((f) => f.name) : ["Google Books", "Open Library"];
+  const failed = [["Google Books", gb], ["Open Library", ol]]
+    .filter(([name, r]) => r.status === "rejected" && serverFailed.includes(name))
+    .map(([name, r]) => ({ name, reason: r.reason.message }));
+  return { results: merge([gb.value || [], ol.value || [], sv.value?.results || []]), failed };
+}
 
 const COLL = { books: "books", reads: "reads", notes: "notes" };
 
