@@ -1,0 +1,12 @@
+{
+  "scanned": "2026-11-03",
+  "findings": {
+    "fonts": "Cormorant Garamond (display) + EB Garamond (text), Google Fonts link (public/index.html L22), tokens --display/--text (public/css/style.css :root)",
+    "palette": "hex custom properties: wood, brass, leather, paper, accent #7c2430 (public/css/style.css :root L2-27); theme colours THEME_DEFAULTS (public/js/util.js)",
+    "motion": "Web Animations API, no library (public/js/book-open.js); CSS transitions; prefers-reduced-motion honoured",
+    "spacing": "ad hoc px values, no spacing scale",
+    "framework": "none: static HTML, CSS and ES modules on Cloudflare Workers assets"
+  },
+  "preserve": ["everything: audit only"],
+  "introduce": ["nothing: audit only"]
+}
