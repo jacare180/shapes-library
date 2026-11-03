@@ -17,6 +17,8 @@ Abra http://localhost:8787/?k=teste
 
 ## O que já funciona (MVP)
 
+- Dois visuais, Clássico e Moderno (branco, madeira clara, lombadas coloridas), escolhidos em Ajustes
+
 - Estante por situação (Lendo agora, Lido, Quero ler e Abandonado), por tema ou por ideia do FilosoX, com divisores; lombadas de couro na cor do tema, com largura pelo número de páginas e marcador nos livros em leitura
 - Fila com prioridade em Lendo agora e Quero ler: arrastar para ordenar, número de cada livro na prateleira
 - Por que ler e Conexões com o FilosoX na ficha; cada #ideia leva à estante daquela ideia
@@ -48,7 +50,6 @@ Abra http://localhost:8787/?k=teste
 - Importar do Goodreads (CSV)
 - Empréstimos: para quem e quando
 - Retrospectiva do ano
-- Modo dia (tema claro)
 - Offline completo: hoje sem internet dá para ver, mas não para gravar
 
 ### Dívidas técnicas

@@ -1,7 +1,7 @@
 // The bookcase: one shelf per reading status, or every book grouped by theme with dividers between
 // the themes. Books stand with their spines out.
 import { S, currentRead, progressOf, ideasOf, saveOrder } from "./api.js";
-import { esc, hash, leather, themeColor, STATUS } from "./util.js";
+import { esc, hash, leather, themeColor, inkOn, STATUS } from "./util.js";
 
 const VIEW_KEY = "shapes-shelf-view";
 const VIEWS = { situacao: "Por situação", temas: "Por tema", ideias: "Por ideia" };
@@ -37,7 +37,7 @@ export function spineHTML(book, read, { hidden = false, prio = null } = {}) {
   const author = (book.authors || [])[0] || "";
   const surname = author.split(" ").at(-1);
   return `<button class="spine${hidden ? " out" : ""}" type="button" data-id="${esc(book.id)}"
-      style="--c:${leather(book)};--w:${w}px;--h:${h}px" aria-label="${esc(book.title)}${author ? ", " + esc(author) : ""}">
+      style="--c:${leather(book)};--t:${inkOn(leather(book))};--w:${w}px;--h:${h}px" aria-label="${esc(book.title)}${author ? ", " + esc(author) : ""}">
     <span class="band"></span>
     <span class="s-title">${esc(book.title)}</span>
     <span class="s-author">${esc(surname)}</span>

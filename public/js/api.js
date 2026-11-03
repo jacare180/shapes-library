@@ -28,7 +28,7 @@ const emit = () => listeners.forEach((fn) => fn());
 
 function apply(data) {
   Object.assign(S, data, { loaded: true });
-  setThemeColors(S.config.themeColors);
+  setThemeColors(S.config.themeColors, S.config.themeColorsModern);
   S.reads.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
   safe(() => localStorage.setItem(CACHE, JSON.stringify(data)));
   emit();
@@ -36,7 +36,7 @@ function apply(data) {
 
 export function loadCache() {
   const c = safe(() => JSON.parse(localStorage.getItem(CACHE)));
-  if (c) { Object.assign(S, c, { loaded: true }); setThemeColors(S.config?.themeColors); emit(); }
+  if (c) { Object.assign(S, c, { loaded: true }); setThemeColors(S.config?.themeColors, S.config?.themeColorsModern); emit(); }
 }
 
 async function call(path, opts = {}) {
@@ -82,7 +82,7 @@ export async function write(op, path, data) {
     S.goals[id] = op === "delete" ? undefined : { ...(op === "update" ? S.goals[id] : {}), ...data };
   } else if (c === "config") {
     S.config[id] = { ...(op === "update" ? S.config[id] : {}), ...data };
-    if (id === "themeColors") setThemeColors(S.config.themeColors);
+    if (id === "themeColors" || id === "themeColorsModern") setThemeColors(S.config.themeColors, S.config.themeColorsModern);
   }
   emit();
   try {

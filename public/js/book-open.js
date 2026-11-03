@@ -2,7 +2,7 @@
 // The book is a 3D box (covers, spine, page edges) built with CSS transforms. Its transform origin sits
 // on the spine, so on the shelf it starts exactly over the spine you clicked and the open spread ends
 // with the spine in the middle of the screen.
-import { esc, leather, reducedMotion } from "./util.js";
+import { esc, leather, inkOn, reducedMotion } from "./util.js";
 
 const EASE = "cubic-bezier(.4,.1,.2,1)";
 
@@ -29,7 +29,7 @@ function coverHTML(book) {
 function buildBook(book, W, H, D) {
   const el = document.createElement("div");
   el.className = "bk";
-  el.style.cssText = `--W:${W}px;--H:${H}px;--D:${D}px;--c:${leather(book)}`;
+  el.style.cssText = `--W:${W}px;--H:${H}px;--D:${D}px;--c:${leather(book)};--t:${inkOn(leather(book))}`;
   el.innerHTML = `
     <div class="f f-back"></div>
     <div class="f f-page"><div class="paper"></div></div>

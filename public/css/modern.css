@@ -1,0 +1,323 @@
+/* Hallmark · shape: app screen · genre: editorial · theme: Ink (deal 2/3, seed personal-reading-library-app-58c7·22e21b2d·2026-11-03·r0) · redesign: restyle · scope: the "Moderno" look, beside the classic one (html[data-theme="moderno"])
+ * nav: kept (wordmark, three links, the new-book button) · signature: kept, the shelf of spines and the book that opens with its cover · states: loading (cached copy), empty shelf, error toast, full · ink: paper
+ * axes: light/grotesk-sans/chromatic-teal · posture: restrained · contrast: pass · v2.0.0 */
+/* Hallmark · finish-review: subagent · fix · 8 findings · 7 resolved 1 partial (the oak plank stays at the owner's request, now flat) · also fixed: the phone page tabs covered Fechar */
+/* Hallmark · pre-emit critique: P4 H4 E4 S5 R4 V3 · weakest: V, it keeps the classic layout by request; the shelf, now pale oak on white with flat modern spines, carries the change */
+/* Hallmark · waive 11 · the spine lifts and lightens on hover · the owner asked that every spine on the shelf keeps both, lifting and lightening */
+/* Hallmark · waive 39b · a spine is a button as tall as its book · each spine on the shelf is the book itself, so its height is the book's and not a control size */
+/* Hallmark · waive 22 · ink and greys at zero chroma · the paper and its ink stay hueless so the spines carry the colour of the shelf */
+/* Hallmark · dismissed plank · the owner asked for a pale wood shelf under the spines; it stays one flat oak, no grain and no gradient */
+/* Hallmark · dismissed 23 · the teal only marks small pieces: the ribbon in a book, the rating dots and the progress bars */
+/* Hallmark · answered F4 · the dark tab and status buttons mark the current choice; the one primary button is the new-book button */
+/* Hallmark · answered F7 · every text field in the book and in the dialogs shares one recipe on purpose */
+/* Hallmark · answered spine colours · the spines are the books themselves, in the owner's theme colours; teal stays the one interface colour */
+/*
+ * The tokens and base rules scaffolded for Ink, scoped to the look so the classic one stays untouched.
+ * Classic variables are remapped first, so every component already written on them follows; what the
+ * classic look draws as a material (brass, wood, leather, small caps) is redrawn flat below.
+ */
+html[data-theme="moderno"] {
+  color-scheme: light;
+  --space-3xs: 2px; --space-2xs: 4px; --space-xs: 8px; --space-sm: 12px; --space-md: 16px; --space-lg: 24px; --space-xl: 40px; --space-2xl: 64px;
+  --text-xs: 0.75rem; --text-sm: 0.875rem; --text-md: 1rem; --text-lg: 1.2rem; --text-xl: 1.44rem; --text-2xl: 1.728rem; --text-3xl: 2.074rem;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-micro: 120ms; --dur-short: 220ms; --dur-long: 420ms;
+  --color-error: oklch(52% 0.19 27);
+  --color-paper: oklch(99.5% 0.003 100); --color-paper-2: oklch(97% 0.004 100); --color-paper-3: oklch(94% 0.006 100);
+  --color-ink: oklch(16% 0 0); --color-ink-2: oklch(28% 0 0); --color-muted: oklch(44% 0 0);
+  --color-rule: oklch(89% 0.004 100); --color-rule-2: oklch(93.5% 0.003 100);
+  --color-accent: oklch(50% 0.095 188); --color-accent-ink: oklch(99.5% 0.003 100); --color-accent-soft: oklch(93% 0.05 190); --color-accent-soft-ink: oklch(27% 0.045 190);
+  --color-focus: oklch(50% 0.095 188);
+  --color-scrim: oklch(16% 0 0 / 0.42);
+  --color-spine-edge: oklch(16% 0 0 / 0.06);
+  --color-gutter: oklch(16% 0 0 / 0.16);
+  --logo-1: oklch(48% 0.17 262); --logo-3: oklch(58% 0.19 30); --logo-4: oklch(86% 0.15 95);
+  --font-display: "Epilogue", ui-sans-serif, system-ui, sans-serif; --font-body: var(--font-display);
+  --radius-card: 12px; --radius-control: 10px; --radius-pill: 999px; --radius-spine: 6px; --rule-hair: 1px;
+  --shadow-card: 0 20px 40px oklch(20% 0 0 / 0.16);
+  --tracking-display: -0.04em; --display-weight: 700;
+  /* the shelf: pale oak on a white wall */
+  --oak-top: oklch(92% 0.028 82); --oak: oklch(86% 0.04 78); --oak-edge: oklch(76% 0.045 70);
+
+  /* the classic variables, remapped */
+  --wall: var(--color-paper); --wall-2: var(--color-paper);
+  --cream: var(--color-ink); --cream-dim: var(--color-muted); --gold: var(--color-ink);
+  --paper: var(--color-paper); --paper-2: var(--color-paper-2);
+  --ink: var(--color-ink); --ink-soft: var(--color-muted); --rule: var(--color-rule);
+  --accent: var(--color-accent); --field-edge: var(--color-muted);
+  --display: var(--font-display); --text: var(--font-body);
+  --brass-hi: var(--color-ink); --brass: var(--color-ink); --brass-lo: var(--color-ink);
+  --wood: var(--oak); --wood-hi: var(--oak-top); --wood-lo: var(--oak-edge); --wood-back: var(--color-paper);
+  --row: 300px; --plank: 12px;
+}
+
+/* ---------- page ---------- */
+html[data-theme="moderno"] body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font: 400 var(--text-md)/1.55 var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+html[data-theme="moderno"] :focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+html[data-theme="moderno"] .leaf :focus-visible, html[data-theme="moderno"] .card :focus-visible { outline-color: var(--color-focus); }
+html[data-theme="moderno"] ::selection { background: var(--color-accent-soft); color: var(--color-accent-soft-ink); }
+html[data-theme="moderno"] { scrollbar-color: var(--color-muted) var(--color-paper); }
+html[data-theme="moderno"] h1, html[data-theme="moderno"] h2, html[data-theme="moderno"] h3 { font-synthesis: none; overflow-wrap: break-word; min-width: 0; text-wrap: balance; }
+html[data-theme="moderno"] .linkish { white-space: nowrap; }
+
+/* every label the classic look sets in small caps reads as plain text here */
+html[data-theme="moderno"] :is(.plaque, .label, .spine .s-author, .divider b, .exlibris b, .meta, .sect, .n-meta, .months span, .door h1, .why h3, .connections h3, .top nav a) {
+  font-variant: normal; letter-spacing: 0; text-transform: none;
+}
+
+/* ---------- header and logo ---------- */
+html[data-theme="moderno"] .top {
+  background: var(--color-paper);
+  border-bottom: var(--rule-hair) solid var(--color-rule);
+  box-shadow: none;
+  padding-block: var(--space-md);
+  /* the same column as the content below: main is 1240px wide with 16px gutters */
+  padding-inline: max(var(--space-md), calc((100% - 1208px) / 2));
+}
+html[data-theme="moderno"] .plaque {
+  display: inline-flex; align-items: center; gap: var(--space-xs);
+  padding: 0;
+  background: none; box-shadow: none; text-shadow: none;
+  color: var(--color-ink);
+  font: 400 var(--text-xl)/1 var(--font-display);
+  letter-spacing: -0.03em;
+}
+html[data-theme="moderno"] .plaque .wordmark b { font-weight: 700; }
+html[data-theme="moderno"] .plaque .logo-mark { display: block; width: 34px; height: 28px; }
+html[data-theme="moderno"] .logo-mark .lm-1 { fill: var(--logo-1); }
+html[data-theme="moderno"] .logo-mark .lm-2 { fill: var(--color-ink); }
+html[data-theme="moderno"] .logo-mark .lm-3 { fill: var(--logo-3); }
+html[data-theme="moderno"] .logo-mark .lm-4 { fill: var(--logo-4); }
+html[data-theme="moderno"] .top nav a { font: 400 var(--text-md) var(--font-body); color: var(--color-muted); border-bottom-width: 2px; }
+html[data-theme="moderno"] .top nav a:hover { color: var(--color-ink); }
+html[data-theme="moderno"] .top nav a.on { color: var(--color-ink); border-color: var(--color-accent); }
+
+/* ---------- controls ---------- */
+html[data-theme="moderno"] .brass {
+  min-height: 40px;
+  padding: var(--space-xs) var(--space-md);
+  border: var(--rule-hair) solid var(--color-ink);
+  border-radius: var(--radius-control);
+  background: var(--color-ink); color: var(--color-paper);
+  box-shadow: none; text-shadow: none;
+  font: 600 var(--text-sm) var(--font-body); letter-spacing: 0;
+  transition: background-color var(--dur-micro) var(--ease-out);
+}
+html[data-theme="moderno"] .brass:hover { filter: none; background: var(--color-ink-2); }
+html[data-theme="moderno"] .brass:active { transform: translateY(1px); }
+html[data-theme="moderno"] .goal-tabs, html[data-theme="moderno"] .view-switch, html[data-theme="moderno"] .look-switch {
+  display: inline-flex; border: var(--rule-hair) solid var(--color-rule); border-radius: var(--radius-control); overflow: clip; background: var(--color-paper);
+}
+html[data-theme="moderno"] .goal-tabs { display: flex; }
+html[data-theme="moderno"] :is(.goal-tabs, .view-switch, .look-switch) button {
+  min-height: 36px; padding: var(--space-2xs) var(--space-md); border: 0; background: none; white-space: nowrap;
+  color: var(--color-muted); font: 600 var(--text-sm) var(--font-body);
+}
+html[data-theme="moderno"] :is(.goal-tabs, .view-switch) button[aria-pressed="true"],
+html[data-theme="moderno"] .look-switch button[aria-checked="true"] { background: var(--color-ink); color: var(--color-paper); }
+html[data-theme="moderno"] .find {
+  min-height: 40px; border: var(--rule-hair) solid var(--color-muted); border-radius: var(--radius-control);
+  background: var(--color-paper); color: var(--color-ink); font: 400 var(--text-sm) var(--font-body);
+}
+html[data-theme="moderno"] .find::placeholder { color: var(--color-muted); font-style: normal; }
+html[data-theme="moderno"] .tally { font-style: normal; color: var(--color-muted); font-size: var(--text-sm); }
+html[data-theme="moderno"] .reorder-btn {
+  min-height: 32px; border: var(--rule-hair) solid var(--color-rule); border-radius: var(--radius-pill);
+  background: var(--color-paper-2); color: var(--color-ink); font: 600 var(--text-xs) var(--font-body);
+}
+html[data-theme="moderno"] .reorder-btn:hover { background: var(--color-paper-3); }
+html[data-theme="moderno"] .hint, html[data-theme="moderno"] main .hint { color: var(--color-muted); font-style: normal; font-size: var(--text-sm); }
+
+/* ---------- the shelf: pale oak on a white wall ---------- */
+html[data-theme="moderno"] .label {
+  margin: var(--space-2xl) 0 var(--space-xs);
+  font: var(--display-weight) var(--text-2xl)/1.05 var(--font-display); letter-spacing: var(--tracking-display);
+}
+html[data-theme="moderno"] .label span { padding: 0; background: none; box-shadow: none; color: var(--color-ink); }
+html[data-theme="moderno"] .label small { font: 400 var(--text-md) var(--font-body); font-style: normal; color: var(--color-muted); }
+html[data-theme="moderno"] .case {
+  padding: var(--space-xs) var(--space-md) 0;
+  border: 0; border-image: none;
+  background: none; box-shadow: none;
+}
+html[data-theme="moderno"] .books {
+  background-image: linear-gradient(to bottom, transparent calc(var(--row) - var(--plank)), var(--oak-edge) calc(var(--row) - var(--plank)), var(--oak-edge) calc(var(--row) - var(--plank) + 1px), var(--oak) calc(var(--row) - var(--plank) + 1px));
+  background-size: 100% var(--row);
+}
+html[data-theme="moderno"] .spine {
+  border-radius: var(--radius-spine) var(--radius-spine) 2px 2px;
+  background: var(--c);
+  color: var(--t);
+  box-shadow: inset 0 0 0 1px var(--color-spine-edge);
+  gap: var(--space-xs);
+  padding: var(--space-md) 0 var(--space-sm);
+  transition: transform var(--dur-short) var(--ease-out), filter var(--dur-short) var(--ease-out);
+}
+/* by request: a spine lifts and lightens under the pointer (waived 11) */
+html[data-theme="moderno"] .spine[data-id]:hover, html[data-theme="moderno"] .spine[data-id]:focus-visible { transform: translateY(-10px); filter: brightness(1.12) saturate(1.05); }
+html[data-theme="moderno"] .spine .band { display: none; }
+html[data-theme="moderno"] .spine .s-title { font: 600 clamp(12px, calc(var(--w) * 0.34), 15px)/1 var(--font-body); letter-spacing: 0; text-shadow: none; }
+html[data-theme="moderno"] .spine .s-author { font: 400 12px var(--font-body); opacity: 0.85; }
+html[data-theme="moderno"] .ribbon { width: 6px; background: var(--color-accent); right: 24%; box-shadow: none; border-radius: 0 0 1px 1px; }
+html[data-theme="moderno"] .prio {
+  bottom: -18px; min-width: 18px; height: 18px; border-radius: var(--radius-pill);
+  background: var(--color-paper); color: var(--color-ink); box-shadow: inset 0 0 0 1px var(--color-rule);
+  font: 600 11px/18px var(--font-body);
+}
+html[data-theme="moderno"] .spine.ghost { border: 1.5px dashed var(--color-rule); color: var(--color-muted); border-radius: var(--radius-spine); font: 400 var(--text-xl) var(--font-body); }
+html[data-theme="moderno"] .spine.ghost:hover { border-color: var(--color-ink); color: var(--color-ink); }
+html[data-theme="moderno"] .spine.empty-place { border: 1.5px dashed var(--color-rule); border-radius: var(--radius-spine); }
+/* dividers: a white card on its stand, the theme colour as a top edge */
+html[data-theme="moderno"] .divider {
+  border-radius: var(--radius-control);
+  background: var(--color-paper);
+  box-shadow: inset 0 0 0 1px var(--color-rule);
+  color: var(--color-ink);
+  overflow: visible;
+}
+html[data-theme="moderno"] .divider::before { border-radius: var(--radius-control) var(--radius-control) 0 0; height: 5px; }
+html[data-theme="moderno"] .divider::after { background: var(--color-rule); }
+html[data-theme="moderno"] .divider b { font: 600 var(--text-sm)/1.15 var(--font-body); text-shadow: none; }
+html[data-theme="moderno"] .divider small { font: 400 var(--text-xs) var(--font-body); font-style: normal; color: var(--color-muted); }
+html[data-theme="moderno"] .idea-notes, html[data-theme="moderno"] .idea-notes b { color: var(--color-ink-2); }
+
+/* ---------- the open book: same motion and cover, flat paper inside ---------- */
+html[data-theme="moderno"] .dim { background: var(--color-scrim); }
+html[data-theme="moderno"] .bk .f-back, html[data-theme="moderno"] .bk .f-front .out { border-radius: 3px 10px 10px 3px; background: var(--c); }
+html[data-theme="moderno"] .bk .f-front .in { border-radius: 10px 3px 3px 10px; }
+html[data-theme="moderno"] .bk .f-spine { background: var(--c); color: var(--t, var(--color-paper)); }
+html[data-theme="moderno"] .bk .f-spine .band { display: none; }
+html[data-theme="moderno"] .paper, html[data-theme="moderno"] .leaf { background: var(--color-paper); }
+html[data-theme="moderno"] .leather-cover .frame {
+  border: var(--rule-hair) solid currentColor; outline: 0; text-shadow: none;
+  color: var(--t, var(--color-paper));
+}
+html[data-theme="moderno"] .c-title { font: var(--display-weight) clamp(26px, calc(var(--W) * 0.085), 44px)/1.05 var(--font-display); letter-spacing: var(--tracking-display); }
+html[data-theme="moderno"] .c-author { font: 400 clamp(15px, calc(var(--W) * 0.045), 20px) var(--font-body); font-style: normal; }
+html[data-theme="moderno"] .exlibris { font: 400 var(--text-md)/1.3 var(--font-body); font-style: normal; color: var(--color-muted); border: var(--rule-hair) solid var(--color-rule); outline: 0; }
+html[data-theme="moderno"] .exlibris b { color: var(--color-ink); font-weight: 700; }
+html[data-theme="moderno"] .spread { border-radius: 12px; background: var(--c); box-shadow: var(--shadow-card); }
+html[data-theme="moderno"] .leaf { color: var(--color-ink-2); font-size: var(--text-md); scrollbar-color: var(--color-rule) transparent; }
+html[data-theme="moderno"] .leaf.left { border-radius: 6px 0 0 6px; box-shadow: inset -1px 0 0 var(--color-rule), inset -18px 0 22px -20px var(--color-gutter); }
+html[data-theme="moderno"] .leaf.right { border-radius: 0 6px 6px 0; box-shadow: inset 18px 0 22px -20px var(--color-gutter); }
+html[data-theme="moderno"] .single .leaf { border-radius: 6px; }
+html[data-theme="moderno"] .close-book { top: -52px; min-height: 36px; border: 0; border-radius: var(--radius-pill); background: var(--color-paper); color: var(--color-ink); font: 600 var(--text-sm) var(--font-body); }
+html[data-theme="moderno"] .close-book:hover { background: var(--color-paper-3); }
+html[data-theme="moderno"] .single .close-book { top: auto; bottom: -50px; right: auto; left: 0; }
+html[data-theme="moderno"] .single .leaf-tabs { left: auto; right: 0; justify-content: flex-end; } /* clear of Fechar, on the left */
+html[data-theme="moderno"] .leaf-tabs button { min-height: 36px; border-color: var(--color-rule); background: var(--color-paper); color: var(--color-muted); font: 600 var(--text-sm) var(--font-body); }
+html[data-theme="moderno"] .leaf-tabs button.on { background: var(--color-ink); border-color: var(--color-ink); color: var(--color-paper); }
+
+/* the record page */
+html[data-theme="moderno"] :is(.linkish, .rec-head .link a, .why-actions .linkish) { color: var(--color-ink); font-weight: 600; text-decoration-thickness: 1px; transition: text-decoration-color var(--dur-micro) var(--ease-out); }
+html[data-theme="moderno"] :is(.linkish, .rec-head .link a):hover { text-decoration-color: var(--color-accent); }
+html[data-theme="moderno"] .rec-head h1 { font: var(--display-weight) var(--text-2xl)/1.05 var(--font-display); letter-spacing: var(--tracking-display); color: var(--color-ink); }
+html[data-theme="moderno"] .by { font-style: normal; font-size: var(--text-md); color: var(--color-ink-2); }
+html[data-theme="moderno"] .meta { font-size: var(--text-sm); color: var(--color-muted); }
+html[data-theme="moderno"] .thumb { border-radius: 3px 8px 8px 3px; background: var(--c); }
+html[data-theme="moderno"] .tags span { border-color: var(--color-rule); background: var(--color-paper-2); color: var(--color-ink-2); font-size: var(--text-xs); font-weight: 600; }
+html[data-theme="moderno"] .why, html[data-theme="moderno"] .connections { border-left: 0; border-top: var(--rule-hair) solid var(--color-ink); background: none; padding: var(--space-xs) 0 0; }
+html[data-theme="moderno"] .why.theirs { border-top-style: dashed; background: none; }
+html[data-theme="moderno"] .why.empty { border: var(--rule-hair) dashed var(--color-rule); padding: var(--space-sm); border-radius: var(--radius-control); }
+html[data-theme="moderno"] .why h3, html[data-theme="moderno"] .connections h3 { font: 400 var(--text-sm) var(--font-body); color: var(--color-muted); }
+html[data-theme="moderno"] .why h3 small { font-style: normal; }
+html[data-theme="moderno"] .why p { color: var(--color-ink-2); }
+html[data-theme="moderno"] .idea { border-color: var(--color-rule); border-radius: var(--radius-pill); background: var(--color-paper-2); color: var(--color-ink); font: 600 var(--text-sm) var(--font-body); }
+html[data-theme="moderno"] .idea small { font: 400 var(--text-xs) var(--font-body); font-style: normal; color: var(--color-muted); }
+html[data-theme="moderno"] .idea:hover { border-color: var(--color-accent); }
+html[data-theme="moderno"] .status button { min-height: 32px; border-color: var(--color-rule); color: var(--color-ink-2); font-size: var(--text-sm); font-weight: 600; }
+html[data-theme="moderno"] .status button.on { background: var(--color-ink); border-color: var(--color-ink); color: var(--color-paper); }
+html[data-theme="moderno"] .sect {
+  margin: var(--space-lg) 0 var(--space-xs); padding-top: var(--space-xs);
+  border-top: var(--rule-hair) solid var(--color-ink);
+  font: var(--display-weight) var(--text-lg) var(--font-display); letter-spacing: var(--tracking-display); color: var(--color-ink);
+}
+html[data-theme="moderno"] .sect::after { display: none; }
+html[data-theme="moderno"] .sect.first { margin-top: 0; }
+html[data-theme="moderno"] .sect small { font: 400 var(--text-sm) var(--font-body); font-style: normal; letter-spacing: 0; }
+html[data-theme="moderno"] .crit { border-bottom: var(--rule-hair) solid var(--color-rule-2); padding: var(--space-3xs) 0; }
+html[data-theme="moderno"] .crit i { display: none; }
+html[data-theme="moderno"] .crit span:first-child { flex: 1; }
+html[data-theme="moderno"] .dots button::before { border-color: var(--color-muted); }
+html[data-theme="moderno"] .dots button.on::before { background: var(--color-accent); border-color: var(--color-accent); }
+html[data-theme="moderno"] .mean { font-style: normal; }
+html[data-theme="moderno"] .mean b { color: var(--color-ink); font-weight: 700; }
+html[data-theme="moderno"] .stars button { color: var(--color-rule); }
+html[data-theme="moderno"] .stars button.on { color: var(--color-ink); text-shadow: none; }
+html[data-theme="moderno"] .bar { background: var(--color-paper-3); box-shadow: none; border-radius: var(--radius-pill); }
+html[data-theme="moderno"] .bar i { background: var(--color-accent); }
+html[data-theme="moderno"] .progress b { color: var(--color-ink); }
+html[data-theme="moderno"] .leaf textarea, html[data-theme="moderno"] .why textarea { border-color: var(--color-muted); border-radius: var(--radius-control); background: var(--color-paper); }
+html[data-theme="moderno"] .note-kind span { border-color: var(--color-rule); color: var(--color-ink-2); font-weight: 600; font-size: var(--text-xs); }
+html[data-theme="moderno"] .note-kind input:checked + span { background: var(--color-ink); border-color: var(--color-ink); color: var(--color-paper); }
+html[data-theme="moderno"] .note { border-bottom-color: var(--color-rule); }
+html[data-theme="moderno"] .n-meta { font-size: var(--text-xs); color: var(--color-muted); }
+html[data-theme="moderno"] .n-meta span:first-child { color: var(--color-ink); }
+html[data-theme="moderno"] .note.citacao p { font-style: normal; border-left-color: var(--color-accent); }
+html[data-theme="moderno"] .rec-foot { border-top-color: var(--color-rule); }
+html[data-theme="moderno"] .rec-foot .danger { color: var(--color-error); }
+html[data-theme="moderno"] .review-state { font-style: normal; }
+
+/* ---------- dialogs, goals, settings, door, toast ---------- */
+html[data-theme="moderno"] #modal::backdrop { background: var(--color-scrim); }
+html[data-theme="moderno"] .card { border-radius: var(--radius-card); background: var(--color-paper); box-shadow: var(--shadow-card); }
+html[data-theme="moderno"] .card h2 { font: var(--display-weight) var(--text-2xl) var(--font-display); letter-spacing: var(--tracking-display); }
+html[data-theme="moderno"] :is(.finder input, .book-form input:not([type="radio"]), .book-form select, .book-form textarea) {
+  min-height: 40px; border-color: var(--color-muted); border-radius: var(--radius-control); background: var(--color-paper);
+}
+html[data-theme="moderno"] .results li button { border-radius: var(--radius-control); }
+html[data-theme="moderno"] .results li button.on { box-shadow: inset 3px 0 0 var(--color-accent); }
+html[data-theme="moderno"] .manual summary { font: 600 var(--text-md) var(--font-body); color: var(--color-ink); }
+html[data-theme="moderno"] .kind span { border-color: var(--color-rule); font-weight: 600; font-size: var(--text-sm); }
+html[data-theme="moderno"] .kind input:checked + span { background: var(--color-ink); border-color: var(--color-ink); color: var(--color-paper); }
+html[data-theme="moderno"] .swatches span { border-radius: 4px; }
+html[data-theme="moderno"] .swatches input:checked + span { outline-color: var(--color-ink); }
+
+html[data-theme="moderno"] .year-nav h1, html[data-theme="moderno"] .settings h1 {
+  font: var(--display-weight) var(--text-3xl)/1.05 var(--font-display); letter-spacing: var(--tracking-display); color: var(--color-ink); text-shadow: none;
+}
+html[data-theme="moderno"] .year-nav button { color: var(--color-ink); }
+html[data-theme="moderno"] .settings h1 { margin-top: var(--space-xl); }
+html[data-theme="moderno"] .goal-form label { font-style: normal; color: var(--color-muted); font-size: var(--text-sm); }
+html[data-theme="moderno"] :is(.goal-form input, .settings textarea) { border-color: var(--color-muted); border-radius: var(--radius-control); background: var(--color-paper); color: var(--color-ink); }
+html[data-theme="moderno"] .goal-numbers b { font: var(--display-weight) var(--text-3xl) var(--font-display); letter-spacing: var(--tracking-display); color: var(--color-ink); }
+html[data-theme="moderno"] .bar.big { background: var(--color-paper-3); box-shadow: none; }
+html[data-theme="moderno"] .bar.big i { background: var(--color-accent); }
+html[data-theme="moderno"] .pace { font-style: normal; color: var(--color-muted); }
+html[data-theme="moderno"] .months { background: var(--color-paper-2); border-radius: var(--radius-card); }
+html[data-theme="moderno"] .months i { background: var(--color-ink); border-radius: 3px 3px 0 0; }
+html[data-theme="moderno"] .months b { margin-top: var(--space-2xs); font: 700 var(--text-sm) var(--font-body); color: var(--color-ink); }
+html[data-theme="moderno"] .months span { color: var(--color-muted); }
+html[data-theme="moderno"] .crit-form label { font-style: normal; color: var(--color-muted); }
+html[data-theme="moderno"] .theme-row legend { color: var(--color-ink); }
+html[data-theme="moderno"] .theme-row .swatches span { border-radius: 4px; }
+html[data-theme="moderno"] .theme-row .swatches input:checked + span { outline-color: var(--color-ink); }
+html[data-theme="moderno"] .settings > button:not(.brass) { min-height: 40px; border-color: var(--color-rule); border-radius: var(--radius-control); background: var(--color-paper-2); color: var(--color-ink); font-weight: 600; }
+
+html[data-theme="moderno"] .door-plaque { border: var(--rule-hair) solid var(--color-rule); border-image: none; border-radius: var(--radius-card); background: var(--color-paper); box-shadow: none; }
+html[data-theme="moderno"] .door h1 { font: var(--display-weight) var(--text-3xl)/1.05 var(--font-display); letter-spacing: var(--tracking-display); color: var(--color-ink); text-shadow: none; }
+html[data-theme="moderno"] .door .small, html[data-theme="moderno"] .door label { font-style: normal; color: var(--color-muted); }
+html[data-theme="moderno"] .door input { border: var(--rule-hair) solid var(--color-muted); border-radius: var(--radius-control); background: var(--color-paper); color: var(--color-ink); }
+html[data-theme="moderno"] .door-msg { font-style: normal; color: var(--color-error); }
+html[data-theme="moderno"] .toast { border-radius: var(--radius-control); background: var(--color-ink); color: var(--color-paper); box-shadow: var(--shadow-card); }
+html[data-theme="moderno"] .toast.bad { background: var(--color-error); color: var(--color-paper); }
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-theme="moderno"] .spine, html[data-theme="moderno"] .brass { transition: none; }
+  html[data-theme="moderno"] .spine[data-id]:hover, html[data-theme="moderno"] .spine[data-id]:focus-visible { transform: none; }
+}
+
+@media (max-width: 360px) {
+  html[data-theme="moderno"] :is(.goal-tabs, .view-switch) button { padding-inline: var(--space-xs); font-size: var(--text-xs); }
+}
+
+@media (max-width: 700px) {
+  html[data-theme="moderno"] { --row: 280px; }
+  html[data-theme="moderno"] .plaque { font-size: var(--text-lg); }
+  html[data-theme="moderno"] .label { font-size: var(--text-xl); }
+}

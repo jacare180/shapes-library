@@ -1,0 +1,17 @@
+[
+ {
+  "mode": "redesign",
+  "depth": "restyle",
+  "scope": "app",
+  "theme": "ink",
+  "shape": "app screen",
+  "signature": "the shelf of spines and the book that opens",
+  "waived": [
+   "11",
+   "22",
+   "39b"
+  ],
+  "prompt": "personal reading library app, minimalist white gallery, pale wood shelf, books in modern colours",
+  "date": "2026-11-03"
+ }
+]

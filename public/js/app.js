@@ -1,5 +1,5 @@
 import { S, getKey, setKey, takeKeyFromUrl, loadCache, refresh, bookById, currentRead, newRead, write, moveNotesToFields } from "./api.js";
-import { $, $$, esc, toast } from "./util.js";
+import { $, $$, esc, toast, applyLook, look } from "./util.js";
 import { renderShelves, fillShelves, showView, wireReorder, isReordering } from "./shelf.js";
 import { openBook, closeBook, relayout } from "./book-open.js";
 import { fillSpread, clearSpread, redrawIfIdle } from "./book-page.js";
@@ -46,6 +46,8 @@ async function start() {
     if (!S.loaded) return door("Não consegui falar com a biblioteca. Confira a conexão.");
     toast("Sem conexão: mostrando a última cópia salva.", "bad");
   }
+  // the look chosen on another device wins over this device's memory
+  if (S.config.ui?.look && S.config.ui.look !== look()) applyLook(S.config.ui.look);
   $(".top").hidden = false;
   route();
   // one time: "Por que ler" and "Conexões" notes from the Notion import become fields of the book
@@ -143,6 +145,7 @@ async function resync() {
   last = Date.now();
   try {
     await refresh();
+    if (S.config.ui?.look && S.config.ui.look !== look()) applyLook(S.config.ui.look);
     if ($(".shelves", view)) fillShelves(view, filter);
     redrawIfIdle();
   } catch { /* offline: keep the copy on screen */ }

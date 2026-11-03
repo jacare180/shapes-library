@@ -1,6 +1,6 @@
 // Adding a book (search the catalogs or fill in by hand) and editing its details.
 import { S, search, addBook, write, bookById } from "./api.js";
-import { esc, LEATHER, leather, STATUS, KINDS, toast } from "./util.js";
+import { esc, LEATHER, MODERN, look, leather, STATUS, KINDS, toast } from "./util.js";
 
 const modal = () => document.getElementById("modal");
 
@@ -25,7 +25,7 @@ function formHTML(b = {}, { status } = {}) {
     <label class="wide">Capa (endereço da imagem) <input name="cover" type="url" value="${esc(b.cover || "")}"></label>
     <fieldset class="wide swatches"><legend>Cor da lombada</legend>
       <label><input type="radio" name="color" value="" ${!color ? "checked" : ""}><span class="auto" title="Cor do primeiro tema">do tema</span></label>
-      ${LEATHER.map((c) => `<label><input type="radio" name="color" value="${c}" ${color === c ? "checked" : ""}><span style="--c:${c}"></span></label>`).join("")}
+      ${(look() === "moderno" ? MODERN : LEATHER).map((c) => `<label><input type="radio" name="color" value="${c}" ${color === c ? "checked" : ""}><span style="--c:${c}"></span></label>`).join("")}
     </fieldset>
     ${status ? `<label class="wide">Em qual prateleira?
       <select name="status">${Object.entries(STATUS).map(([k, v]) => `<option value="${k}" ${k === status ? "selected" : ""}>${v}</option>`).join("")}</select></label>` : ""}`;

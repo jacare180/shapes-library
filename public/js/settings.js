@@ -1,8 +1,10 @@
 // Settings: rating criteria per kind of book, theme colours, backup and import, leaving this device.
 import { S, write, setKey, importLibrary } from "./api.js";
-import { esc, KINDS, today, toast, LEATHER, THEME_DEFAULTS, themeColor } from "./util.js";
+import { esc, KINDS, today, toast, LEATHER, THEME_DEFAULTS, MODERN, MODERN_THEME_DEFAULTS, themeColor, look, applyLook } from "./util.js";
 
-const SWATCHES = [...new Set([...Object.values(THEME_DEFAULTS), ...LEATHER])];
+const swatches = () => (look() === "moderno"
+  ? [...new Set([...Object.values(MODERN_THEME_DEFAULTS), ...MODERN])]
+  : [...new Set([...Object.values(THEME_DEFAULTS), ...LEATHER])]);
 
 export function renderSettings(view) {
   const crit = S.config.criteria || {};
@@ -10,6 +12,13 @@ export function renderSettings(view) {
   view.innerHTML = `
     <section class="settings">
       <h1>Ajustes</h1>
+
+      <h2 class="label"><span>Visual</span></h2>
+      <p class="hint">Vale para todos os seus aparelhos. Seus livros e anotações não mudam.</p>
+      <div class="look-switch" role="radiogroup" aria-label="Visual">
+        <button type="button" role="radio" data-look="classico" aria-checked="${look() === "classico"}">Clássico</button>
+        <button type="button" role="radio" data-look="moderno" aria-checked="${look() === "moderno"}">Moderno</button>
+      </div>
 
       <h2 class="label"><span>Critérios de avaliação</span></h2>
       <p class="hint">Um critério por linha. Cada livro usa a lista do seu tipo, e as notas antigas continuam guardadas.</p>
@@ -19,10 +28,10 @@ export function renderSettings(view) {
       </form>
 
       <h2 class="label"><span>Cores dos temas</span></h2>
-      <p class="hint">A lombada de cada livro usa a cor do seu primeiro tema, a menos que você escolha outra cor no próprio livro.</p>
+      <p class="hint">A lombada de cada livro usa a cor do seu primeiro tema, a menos que você escolha outra cor no próprio livro. Cada visual tem as suas cores.</p>
       ${themes.length ? `<div class="theme-colors">${themes.map((t) => `
         <fieldset class="theme-row" data-theme="${esc(t)}"><legend><span class="dot" style="--c:${themeColor(t)}"></span>${esc(t)}</legend>
-          <div class="swatches">${SWATCHES.map((c) => `<label><input type="radio" name="tc-${esc(t)}" value="${c}" ${themeColor(t) === c ? "checked" : ""}><span style="--c:${c}"></span></label>`).join("")}</div>
+          <div class="swatches">${swatches().map((c) => `<label><input type="radio" name="tc-${esc(t)}" value="${c}" ${themeColor(t) === c ? "checked" : ""}><span style="--c:${c}"></span></label>`).join("")}</div>
         </fieldset>`).join("")}</div>` : `<p class="hint">Nenhum livro tem tema ainda.</p>`}
 
       <h2 class="label"><span>Cópia de segurança</span></h2>
@@ -49,9 +58,17 @@ export function renderSettings(view) {
     const row = e.target.closest("[data-theme]");
     if (!row) return;
     row.querySelector(".dot").style.setProperty("--c", e.target.value);
-    const colors = { ...(S.config.themeColors || {}), [row.dataset.theme]: e.target.value };
-    await write("set", "config/themeColors", colors).catch(() => {}); // the swatch and the dot already show it
+    const key = look() === "moderno" ? "themeColorsModern" : "themeColors";
+    const colors = { ...(S.config[key] || {}), [row.dataset.theme]: e.target.value };
+    await write("set", `config/${key}`, colors).catch(() => {}); // the swatch and the dot already show it
   });
+  view.querySelector(".look-switch").onclick = async (e) => {
+    const b = e.target.closest("[data-look]");
+    if (!b || b.dataset.look === look()) return;
+    applyLook(b.dataset.look);
+    renderSettings(view);
+    await write("set", "config/ui", { ...(S.config.ui || {}), look: b.dataset.look }).catch(() => {});
+  };
   view.querySelector('[data-act="backup"]').onclick = () => {
     const { books, reads, notes, goals, config } = S;
     const blob = new Blob([JSON.stringify({ exportedAt: new Date().toISOString(), books, reads, notes, goals, config }, null, 2)], { type: "application/json" });
