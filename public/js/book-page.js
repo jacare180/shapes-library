@@ -76,7 +76,7 @@ function drawLeft() {
   const mean = avg(scores);
   const pct = progressOf(b, r);
   const past = readsOf(b.id).slice(0, -1).reverse();
-  const meta = [b.year, b.pages && `${b.pages} páginas`, b.genre, KINDS[b.kind || "ficcao"]].filter(Boolean).map(esc).join(" · ");
+  const meta = [b.year, b.pages && `${b.pages} páginas`, b.genre, KINDS[b.kind || "ficcao"]].filter(Boolean).map((x) => `<span>${esc(x)}</span>`).join("");
 
   ctx.spread.querySelector(".leaf.left").innerHTML = `
     <header class="rec-head">
@@ -120,7 +120,7 @@ function drawLeft() {
     <div class="review-row"><span class="review-state" aria-live="polite"></span><button type="button" class="brass" data-act="save-review">Guardar resenha</button></div>
 
     ${past.length ? `<h2 class="sect">Leituras anteriores</h2><ul class="past">${past.map((p) =>
-      `<li>${esc(STATUS[p.status])}, ${p.start ? fmtDate(p.start) : "?"} a ${p.end ? fmtDate(p.end) : "?"}${p.overall ? ` · ${"★".repeat(p.overall)}` : ""}</li>`).join("")}</ul>` : ""}
+      `<li>${esc(STATUS[p.status])}, ${p.start ? fmtDate(p.start) : "?"} a ${p.end ? fmtDate(p.end) : "?"}${p.overall ? `, ${"★".repeat(p.overall)}` : ""}</li>`).join("")}</ul>` : ""}
 
     <footer class="rec-foot">
       <button type="button" data-act="edit">Editar dados</button>
@@ -139,7 +139,7 @@ function drawRight() {
       <div class="note-kind" role="radiogroup" aria-label="Tipo">
         ${Object.entries(NOTE_TYPES).map(([k, v], i) => `<label><input type="radio" name="type" value="${k}" ${i === 0 ? "checked" : ""}><span>${v}</span></label>`).join("")}
       </div>
-      <textarea name="text" rows="3" required placeholder="Uma frase, uma ideia, um resumo do capítulo..."></textarea>
+      <textarea name="text" rows="3" required placeholder="Uma frase, uma ideia, um resumo do capítulo…"></textarea>
       <div class="note-row">
         <label>Página <input type="number" name="page" min="0" inputmode="numeric"></label>
         <button type="submit" class="brass">Guardar</button>
@@ -252,7 +252,7 @@ async function saveReview() {
   const state = ctx.spread.querySelector(".review-state");
   const review = box.value.trim();
   if (review === (read().review || "")) { state.textContent = review ? "Resenha guardada" : ""; return; }
-  state.textContent = "Guardando...";
+  state.textContent = "Guardando…";
   try {
     await write("update", `reads/${read().id}`, { review });
     if (state.isConnected) state.textContent = "Resenha guardada";

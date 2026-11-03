@@ -50,7 +50,7 @@ export function renderSettings(view) {
     if (!row) return;
     row.querySelector(".dot").style.setProperty("--c", e.target.value);
     const colors = { ...(S.config.themeColors || {}), [row.dataset.theme]: e.target.value };
-    await write("set", "config/themeColors", colors).then(() => toast(`Cor de ${row.dataset.theme} salva.`)).catch(() => {});
+    await write("set", "config/themeColors", colors).catch(() => {}); // the swatch and the dot already show it
   });
   view.querySelector('[data-act="backup"]').onclick = () => {
     const { books, reads, notes, goals, config } = S;
@@ -63,7 +63,7 @@ export function renderSettings(view) {
     const f = e.target.files[0];
     const msg = view.querySelector(".import-msg");
     if (!f) return;
-    msg.textContent = "Importando...";
+    msg.textContent = "Importando…";
     try {
       const n = await importLibrary(JSON.parse(await f.text()));
       msg.textContent = `${n} ${n === 1 ? "livro importado" : "livros importados"}. Eles já estão na estante.`;

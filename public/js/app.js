@@ -1,7 +1,7 @@
 import { S, getKey, setKey, takeKeyFromUrl, loadCache, refresh, bookById, currentRead, newRead, write, moveNotesToFields } from "./api.js";
 import { $, $$, esc, toast } from "./util.js";
 import { renderShelves, fillShelves, showView, wireReorder, isReordering } from "./shelf.js";
-import { openBook, closeBook } from "./book-open.js";
+import { openBook, closeBook, relayout } from "./book-open.js";
 import { fillSpread, clearSpread, redrawIfIdle } from "./book-page.js";
 import { newBookDialog, editBookDialog, catalogDialog } from "./forms.js";
 import { renderGoals } from "./goals.js";
@@ -64,6 +64,25 @@ function route() {
   else shut();
 }
 
+// What the open book's buttons do.
+const handlers = (id) => ({
+  onClose: () => { location.hash = "#/"; },
+  onIdea: (code) => {
+    // close the book onto the shelf of that idea
+    filter = `#${code}`;
+    showView(view, "ideias", filter);
+    location.hash = "#/";
+  },
+  onEdit: (bid) => editBookDialog(bid, () => { redrawIfIdle(); fillShelves(view, filter); }),
+  onCatalog: (bid) => catalogDialog(bid, async (data) => {
+    // a % typed before the page count was known becomes a page now
+    const r = currentRead(bid);
+    if (data.pages && r?.pct && !(r.page > 0)) await write("update", `reads/${r.id}`, { page: Math.round((r.pct * data.pages) / 100) }).catch(() => {});
+    redrawIfIdle(); fillShelves(view, filter);
+  }),
+  onDeleted: () => { toast("Livro retirado da estante."); location.hash = "#/"; },
+});
+
 async function show(id) {
   if (openId === id || busy) return;
   const book = bookById(id);
@@ -72,23 +91,7 @@ async function show(id) {
   openId = id;
   if (!currentRead(id)) await newRead(id).catch(() => {});
   document.body.classList.add("reading");
-  await openBook(layer, book, spineOf(id), (spread) => fillSpread(spread, id, {
-    onClose: () => { location.hash = "#/"; },
-    onIdea: (code) => {
-      // close the book onto the shelf of that idea
-      filter = `#${code}`;
-      showView(view, "ideias", filter);
-      location.hash = "#/";
-    },
-    onEdit: (bid) => editBookDialog(bid, () => { redrawIfIdle(); fillShelves(view, filter); }),
-    onCatalog: (bid) => catalogDialog(bid, async (data) => {
-      // a % typed before the page count was known becomes a page now
-      const r = currentRead(bid);
-      if (data.pages && r?.pct && !(r.page > 0)) await write("update", `reads/${r.id}`, { page: Math.round((r.pct * data.pages) / 100) }).catch(() => {});
-      redrawIfIdle(); fillShelves(view, filter);
-    }),
-    onDeleted: () => { toast("Livro retirado da estante."); location.hash = "#/"; },
-  }));
+  await openBook(layer, book, spineOf(id), (spread) => fillSpread(spread, id, handlers(id)));
   busy = false;
   // the address changed while the book was opening (Esc, back button): follow it now
   if (location.hash !== `#/livro/${encodeURIComponent(id)}`) route();
@@ -146,6 +149,21 @@ async function resync() {
 }
 document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") resync(); });
 addEventListener("focus", resync);
+
+// An open book follows the window: a phone turned or a window resized re-places the spread.
+let resizeTimer = 0;
+addEventListener("resize", () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    if (!openId || busy) return;
+    const spread = layer.querySelector(".spread");
+    if (!relayout(layer) || !spread) return;
+    // one page or two: rewrite the pages on a fresh element, so no listener is added twice
+    const fresh = spread.cloneNode(false);
+    spread.replaceWith(fresh);
+    fillSpread(fresh, openId, handlers(openId));
+  }, 150);
+});
 
 takeKeyFromUrl();
 start();

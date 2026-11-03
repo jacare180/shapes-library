@@ -97,6 +97,29 @@ export async function openBook(layer, book, spineEl, fill) {
   bk.style.visibility = "hidden";
 }
 
+// The window changed size (a phone turned, a window resized) while the book lay open: place the
+// spread and the hidden 3D book for the new size. Returns true when the page count changed
+// (one page on a phone, two on a wider screen), so the caller rewrites the pages.
+export function relayout(layer) {
+  const a = layer.bookAnim, spread = layer.querySelector(".spread");
+  if (!a || !spread) return false;
+  const { single, W, H } = pageSize();
+  const cx = innerWidth / 2, cy = innerHeight / 2 + (single ? 0 : 20);
+  const restX = single ? cx - W / 2 : cx, top = cy - H / 2;
+  const changed = spread.classList.contains("single") !== single;
+  spread.classList.toggle("single", single);
+  spread.style.setProperty("--W", `${W}px`);
+  spread.style.setProperty("--H", `${H}px`);
+  spread.style.left = `${single ? restX : restX - W}px`;
+  spread.style.top = `${top}px`;
+  a.bk.style.setProperty("--W", `${W}px`);
+  a.bk.style.setProperty("--H", `${H}px`);
+  a.bk.getAnimations().forEach((x) => x.cancel());
+  a.bk.style.transform = tf(restX, top, 0, 1, 0);
+  Object.assign(a, { W, H, restX, top });
+  return changed;
+}
+
 // The reverse: the cover closes, the book turns and slides back into its gap on the shelf.
 export async function closeBook(layer, spineEl) {
   const a = layer.bookAnim;
