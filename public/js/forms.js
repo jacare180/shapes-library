@@ -18,7 +18,7 @@ function formHTML(b = {}, { status } = {}) {
     <fieldset class="kind"><legend>Tipo</legend>
       ${Object.entries(KINDS).map(([k, v]) => `<label><input type="radio" name="kind" value="${k}" ${(b.kind || "ficcao") === k ? "checked" : ""}><span>${v}</span></label>`).join("")}
     </fieldset>
-    <label class="wide">Temas <input name="tags" placeholder="Separe com vírgula: Filosofia política, Judaísmo, IA..." value="${esc((b.tags || []).join(", "))}"></label>
+    <label class="wide">Temas <input name="tags" placeholder="Separe com vírgula: Filosofia política, Judaísmo, IA…" value="${esc((b.tags || []).join(", "))}"></label>
     <label class="wide">Por que ler <textarea name="why" rows="3" placeholder="O que este livro tem para você">${esc(b.why || "")}</textarea></label>
     <label class="wide">Conexões com o FilosoX <textarea name="connections" rows="2" placeholder="#019 (tradição como linhagem de textos), #026">${esc(b.connections || "")}</textarea>
       <small class="field-hint">Escreva as ideias como #019; o texto entre parênteses vira a descrição.</small></label>
@@ -60,7 +60,7 @@ function open(html) {
 
 // Searches both catalogs and lists what came back; returns the results so a click can pick one.
 async function runSearch(q, box, fallback) {
-  box.innerHTML = `<p class="hint">Procurando nos catálogos...</p>`;
+  box.innerHTML = `<p class="hint">Procurando nos catálogos…</p>`;
   try {
     const d = await search(q);
     const silent = d.failed?.length ? `sem resposta de ${d.failed.map((f) => `${f.name} (${f.reason})`).join(" e ")}` : "";
@@ -68,7 +68,7 @@ async function runSearch(q, box, fallback) {
       ? `<ul>${d.results.map((b, i) => `
           <li><button type="button" data-i="${i}">
             <span class="mini" style="--c:${leather({ id: b.title, title: b.title })}">${b.cover ? `<img src="${esc(b.cover)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : ""}</span>
-            <span><b>${esc(b.title)}</b><br>${esc(b.authors.join(", "))}<small>${[b.year, b.pages && b.pages + " p.", b.source].filter(Boolean).map(esc).join(" · ")}</small></span>
+            <span><b>${esc(b.title)}</b><br>${esc(b.authors.join(", "))}<small>${[b.year, b.pages && b.pages + " p.", b.source].filter(Boolean).map((x) => `<span>${esc(x)}</span>`).join("")}</small></span>
           </button></li>`).join("")}</ul>
           ${silent ? `<p class="hint">${silent[0].toUpperCase() + silent.slice(1)}.</p>` : ""}`
       : `<p class="hint">Nada encontrado${silent ? ` (${silent})` : ""}. Tente o título original, só o sobrenome do autor, o ISBN ${fallback}.</p>`;
@@ -127,7 +127,6 @@ export function catalogDialog(bookId, onSaved) {
       m.close();
       await write("update", `books/${bookId}`, data).catch(() => {});
       onSaved?.(data);
-      toast("Dados completados pelo catálogo.");
     };
     fill.scrollIntoView({ block: "nearest", behavior: "smooth" });
   };

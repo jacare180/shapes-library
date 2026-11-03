@@ -101,7 +101,7 @@ function ideaShelves(books, q) {
   const codes = [...byIdea.keys()].sort((a, b) => +a - +b);
   const body = codes.map((code) => {
     const list = byIdea.get(code);
-    const labels = [...new Set(list.map((x) => x.label).filter(Boolean))].join(" · ");
+    const labels = [...new Set(list.map((x) => x.label).filter(Boolean))].join("; ");
     return dividerHTML(`#${code}`, list.length, { title: labels ? `#${code}: ${labels}` : `#${code}` }) +
       list.map(({ b }) => `<div class="slot">${spineHTML(b, currentRead(b.id))}</div>`).join("");
   }).join("");
@@ -149,7 +149,7 @@ export function fillShelves(view, filter = "") {
 
   const lendo = S.reads.filter((r) => r.status === "lendo" && currentRead(r.bookId) === r).length;
   view.querySelector(".tally").textContent = total
-    ? `${total} ${total === 1 ? "livro" : "livros"} na estante · ${lendo} em leitura · ${readThisYear} ${readThisYear === 1 ? "lido" : "lidos"} em ${year}`
+    ? `${total} ${total === 1 ? "livro" : "livros"} na estante, ${lendo} em leitura, ${readThisYear} ${readThisYear === 1 ? "lido" : "lidos"} em ${year}`
     : "A estante está vazia. Comece pelo primeiro livro.";
   view.querySelector(".shelves").innerHTML =
     mode === "temas" ? themeShelves(shown, q) : mode === "ideias" ? ideaShelves(shown, q) : ORDER.map(shelf).join("");
